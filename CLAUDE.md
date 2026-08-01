@@ -112,6 +112,23 @@
   - 管理者ダッシュボードの実データ化、月次集計（従業員別/元請け先別/
     現場別、CSV/エクスポート出力）は完了。UI仕上げ・Vercelデプロイ・実機テストは未着手。
 
+## デプロイ運用（Vercel）に関する重要な注意
+
+- 本番URLは **https://kitadani-nippou.vercel.app**。
+- **`vercel --prod` を実行しただけでは、この綺麗なURL（`kitadani-nippou.vercel.app`）は
+  最新デプロイに自動更新されない。** これは `vercel alias set` で手動アサインした
+  エイリアスであり、Vercelが自動更新する対象（`kitadani-nippou-kelly-3594.vercel.app`の
+  ようなチームsuffix付きURL）とは別枠として扱われているため。
+  実際にこれが原因で、デプロイしたのに `/admin/settings` が404になる、という
+  不具合が起きたことがある（本番URLだけ古いビルドを指したままだった）。
+  **`vercel --prod` の後は必ず以下を実行してエイリアスを向け直すこと**：
+  ```
+  vercel alias set <vercel --prod の出力に出るProduction URL> kitadani-nippou.vercel.app
+  ```
+- また `vercel --prod` を実行すると、リネーム前の名残で `kitatani-nippou.vercel.app`
+  （誤字入りの旧URL）が毎回自動的に再生成されてしまう。実害はないが、
+  紛らわしいので `vercel alias rm kitatani-nippou.vercel.app --yes` で都度削除している。
+
 ## Phase 6（Web Push通知・完了）
 
 - 18:00（JST）に「今日の日報が未提出」、翌6:00（JST）に「前日の日報が未提出」を
