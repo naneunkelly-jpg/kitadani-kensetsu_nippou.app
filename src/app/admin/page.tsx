@@ -4,7 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { AppHeader } from "@/components/app-header";
 import { AdminNav } from "@/components/admin-nav";
 import { getTodayJstString } from "@/lib/date";
-import { effectiveScheduleStatus } from "@/lib/schedule";
+import { effectiveScheduleStatus, isWorkingStatus } from "@/lib/schedule";
 
 export default async function AdminDashboardPage() {
   const supabase = await createClient();
@@ -67,8 +67,8 @@ export default async function AdminDashboardPage() {
     (todayReports ?? []).map((r) => [r.employee_id, r.id])
   );
 
-  const scheduledEmployees = (employees ?? []).filter(
-    (e) => effectiveScheduleStatus(todayStr, overrideByEmployee.get(e.id)) === "scheduled_work"
+  const scheduledEmployees = (employees ?? []).filter((e) =>
+    isWorkingStatus(effectiveScheduleStatus(todayStr, overrideByEmployee.get(e.id)))
   );
   const dayOffCount = (employees ?? []).length - scheduledEmployees.length;
 

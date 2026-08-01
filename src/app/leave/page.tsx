@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { AppHeader } from "@/components/app-header";
 import { getTodayJstString } from "@/lib/date";
+import { SCHEDULE_STATUS_LABELS } from "@/lib/schedule";
 import { LeaveForm } from "./leave-form";
 import { CancelLeaveButton } from "./cancel-leave-button";
 
@@ -22,9 +23,9 @@ export default async function LeavePage() {
 
   const { data: upcoming } = await supabase
     .from("employee_schedules")
-    .select("schedule_date")
+    .select("schedule_date, status")
     .eq("employee_id", user.id)
-    .eq("status", "day_off")
+    .in("status", ["day_off", "day_off_am", "day_off_pm"])
     .gte("schedule_date", todayStr)
     .order("schedule_date");
 
@@ -56,7 +57,13 @@ export default async function LeavePage() {
                     key={row.schedule_date}
                     className="flex items-center justify-between rounded-2xl border border-border bg-card p-4"
                   >
-                    <p className="font-medium text-foreground">{row.schedule_date}</p>
+                    <div>
+                      <p className="font-medium text-foreground">{row.schedule_date}</p>
+                      <p className="text-xs text-muted">
+                        {SCHEDULE_STATUS_LABELS[row.status as keyof typeof SCHEDULE_STATUS_LABELS] ??
+                          row.status}
+                      </p>
+                    </div>
                     <CancelLeaveButton date={row.schedule_date} />
                   </div>
                 ))}

@@ -11,6 +11,7 @@ export type LeaveActionState = {
 };
 
 const dateSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "日付を入力してください。");
+const periodSchema = z.enum(["day_off", "day_off_am", "day_off_pm"]);
 
 export async function registerLeaveAction(
   _prevState: LeaveActionState,
@@ -25,12 +26,17 @@ export async function registerLeaveAction(
     return { error: "ログインが必要です。" };
   }
 
-  const parsed = dateSchema.safeParse(formData.get("date"));
-  if (!parsed.success) {
-    return { error: parsed.error.issues[0]?.message ?? "日付を入力してください。" };
+  const parsedDate = dateSchema.safeParse(formData.get("date"));
+  if (!parsedDate.success) {
+    return { error: parsedDate.error.issues[0]?.message ?? "日付を入力してください。" };
+  }
+  const parsedPeriod = periodSchema.safeParse(formData.get("period") || "day_off");
+  if (!parsedPeriod.success) {
+    return { error: "休みの種類を確認してください。" };
   }
 
-  const date = parsed.data;
+  const date = parsedDate.data;
+  const status = parsedPeriod.data;
   const today = getTodayJstString();
   if (date < today) {
     return { error: "過去の日付は登録できません。" };
@@ -49,7 +55,9 @@ export async function registerLeaveAction(
     };
   }
 
-  if (existing) {
+  // 終日休みの場合、その日の日報（下書き含む）は不要になるため削除する。
+  // 半休（午前休・午後休）は残り半分を働くため、既存の日報は残す。
+  if (existing && status === "day_off") {
     const { error: deleteError } = await supabase
       .from("daily_reports")
       .delete()
@@ -63,7 +71,7 @@ export async function registerLeaveAction(
     {
       employee_id: user.id,
       schedule_date: date,
-      status: "day_off",
+      status,
       updated_by: user.id,
     },
     { onConflict: "employee_id,schedule_date" }
@@ -96,7 +104,7 @@ export async function cancelLeaveAction(date: string): Promise<LeaveActionState>
     .delete()
     .eq("employee_id", user.id)
     .eq("schedule_date", date)
-    .eq("status", "day_off");
+    .in("status", ["day_off", "day_off_am", "day_off_pm"]);
 
   if (error) {
     return { error: `取り消しに失敗しました: ${error.message}` };

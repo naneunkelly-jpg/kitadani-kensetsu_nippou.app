@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { AppHeader } from "@/components/app-header";
 import { AdminNav } from "@/components/admin-nav";
 import { getTodayJstString, getTodayJstYearMonth, monthRange, dayOfWeekUTC, pad2 } from "@/lib/date";
+import { SCHEDULE_STATUS_LABELS, type ScheduleStatus } from "@/lib/schedule";
 import { SingleHolidayAddForm } from "./single-add-form";
 import { RangeHolidayAddForm } from "./range-add-form";
 import { DeleteHolidayButton } from "./delete-button";
@@ -41,20 +42,20 @@ export default async function HolidaysPage({
       .order("holiday_date"),
     supabase
       .from("employee_schedules")
-      .select("schedule_date, profiles(full_name)")
-      .eq("status", "day_off")
+      .select("schedule_date, status, profiles(full_name)")
+      .in("status", ["day_off", "day_off_am", "day_off_pm"])
       .gte("schedule_date", start)
       .lte("schedule_date", end),
   ]);
 
   const holidayMap = new Map((holidays ?? []).map((h) => [h.holiday_date, h]));
 
-  const leavesByDate = new Map<string, string[]>();
+  const leavesByDate = new Map<string, { name: string; status: ScheduleStatus }[]>();
   for (const l of employeeLeaves ?? []) {
     const p = Array.isArray(l.profiles) ? l.profiles[0] : l.profiles;
     const name = p?.full_name || "(未設定)";
     const list = leavesByDate.get(l.schedule_date) ?? [];
-    list.push(name);
+    list.push({ name, status: l.status as ScheduleStatus });
     leavesByDate.set(l.schedule_date, list);
   }
 
@@ -123,9 +124,9 @@ export default async function HolidaysPage({
                       {holiday.name}
                     </p>
                   )}
-                  {leaves.map((name, idx) => (
+                  {leaves.map((leave, idx) => (
                     <p key={idx} className="mt-1 truncate font-medium text-blue-700">
-                      {name} 休
+                      {leave.name} {SCHEDULE_STATUS_LABELS[leave.status]}
                     </p>
                   ))}
                 </div>

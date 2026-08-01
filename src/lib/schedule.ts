@@ -1,6 +1,6 @@
 import { dayOfWeekUTC } from "@/lib/date";
 
-export type ScheduleStatus = "scheduled_work" | "day_off";
+export type ScheduleStatus = "scheduled_work" | "day_off" | "day_off_am" | "day_off_pm";
 
 /**
  * 例外（employee_schedulesの登録）が無い場合のデフォルト勤務状態を計算する。
@@ -24,4 +24,11 @@ export function effectiveScheduleStatus(
 export const SCHEDULE_STATUS_LABELS: Record<ScheduleStatus, string> = {
   scheduled_work: "出勤予定",
   day_off: "休み",
+  day_off_am: "午前休",
+  day_off_pm: "午後休",
 };
+
+// 半休はその半分は働くため、日報提出などの「出勤扱い」判定ではtrueになる。
+export function isWorkingStatus(status: ScheduleStatus): boolean {
+  return status === "scheduled_work" || status === "day_off_am" || status === "day_off_pm";
+}
