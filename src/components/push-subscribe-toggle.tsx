@@ -110,10 +110,10 @@ export function PushSubscribeToggle() {
       <p className="text-sm font-medium text-foreground">日報リマインド通知</p>
       <p className="mt-1 text-xs text-muted">
         {status === "subscribed"
-          ? "18時の提出リマインドと、翌6時の未提出通知を受け取ります。"
+          ? "当日の提出リマインドと、翌朝の未提出通知を受け取ります。"
           : status === "denied"
             ? "通知がブロックされています。端末の設定アプリから通知を許可してください。"
-            : "18時の提出リマインドと、翌6時の未提出通知を受け取れます。"}
+            : "当日の提出リマインドと、翌朝の未提出通知を受け取れます。"}
       </p>
       {error && <p className="mt-2 text-xs text-danger">{error}</p>}
       {status !== "denied" && (
