@@ -48,7 +48,7 @@ function emptyEntry(): EntryState {
 }
 
 function draftKey(employeeId: string, reportDate: string) {
-  return `kitatani-report-draft-${employeeId}-${reportDate}`;
+  return `kitadani-report-draft-${employeeId}-${reportDate}`;
 }
 
 type DraftPayload = {

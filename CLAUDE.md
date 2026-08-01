@@ -23,7 +23,7 @@
 ## 確定している重要な設計判断
 
 - **ログイン方式**: 従業員は「社員コード」のみでログイン。内部的に
-  `社員コード@kitatani-kensetsu.jp` という擬似メールアドレスに変換してSupabase Authへ渡す
+  `社員コード@kitadani-kensetsu.jp` という擬似メールアドレスに変換してSupabase Authへ渡す
   （`src/lib/config.ts`）。**注意**: 最初 `.local` ドメインを使ったところ、
   Supabaseのメール形式チェックで「invalid」と拒否されたため `.jp` に変更した経緯がある。
   今後も予約TLD（.local, .test, .invalid, .example等）は使わないこと。
@@ -124,8 +124,8 @@
   `effectiveScheduleStatus`（例外 > 曜日デフォルト、日曜=休み）と同じロジックを
   SQLで再現しているため、**双方の判定ロジックを変更する場合は両方直すこと**。
 - **Edge Function**: `supabase/functions/send-report-reminders/index.ts`。
-  pg_cron（`kitatani-evening-report-reminder` = 09:00 UTC = 18:00 JST、
-  `kitatani-morning-report-reminder` = 21:00 UTC = 06:00 JST翌日）から
+  pg_cron（`kitadani-evening-report-reminder` = 09:00 UTC = 18:00 JST、
+  `kitadani-morning-report-reminder` = 21:00 UTC = 06:00 JST翌日）から
   `net.http_post`で呼ばれる。認証ヘッダを付けたくない（サービスロールキーを
   DBに保存したくない）ため `supabase functions deploy --no-verify-jwt` で
   デプロイしている。VAPIDキーは `supabase secrets set` でFunction側にのみ
