@@ -57,6 +57,16 @@
     繰り返し発生したため、**時・分をそれぞれ選ぶ`<select>`方式に変更済み**
     （`src/app/report/new/report-form.tsx` の `TimeSelect` コンポーネント）。
     今後 time input を使う画面を追加する場合はこの教訓を踏まえること。
+  - `<input type="date">` も同種の不具合が発生した。値が入っている場合は問題なく見えても、
+    **値が空の状態だとモバイルSafariのネイティブ部品がコンテナ幅を無視してはみ出す**
+    （`min-w-0`等のCSS調整では直らなかった）。そのため全ての日付入力を
+    **年・月・日をそれぞれ選ぶ`<select>`方式に統一済み**
+    （`src/components/date-select.tsx` の `DateSelect` コンポーネント）。
+    初期表示は空欄でも常に「年・月・日」のプレースホルダーで統一しており、
+    「今日の日付で初期値を入れる」といった賢い挙動はあえて入れていない
+    （挙動を統一する方が分かりやすいというユーザーの意向）。
+    今後 date input を使う画面を追加する場合は `<input type="date">` を使わず
+    必ず `DateSelect` を使うこと。
   - 画面下部に固定表示（`position: fixed`）していた保存ボタンが、他の要素の
     クリックを妨げる不具合の原因になった可能性が高いため、**固定表示をやめて
     通常のページの流れの中に配置**するよう変更済み。
@@ -100,8 +110,40 @@
     で記録する方式。ただしRLSは工具と異なり、他人の使用量を見せる必要が薄いため
     SELECTを「本人or管理者」に限定している（`tool_checkouts`は全員に開放）。
   - 管理者ダッシュボードの実データ化、月次集計（従業員別/元請け先別/
-    現場別、CSV出力）、Web Push通知（18:00/翌6:00、Supabase pg_cron + Edge
-    Functionsで実装予定）、UI仕上げ・Vercelデプロイ・実機テストは未着手。
+    現場別、CSV/エクスポート出力）は完了。UI仕上げ・Vercelデプロイ・実機テストは未着手。
+
+## Phase 6（Web Push通知・完了）
+
+- 18:00（JST）に「今日の日報が未提出」、翌6:00（JST）に「前日の日報が未提出」を
+  Web Pushで通知する仕組みを実装済み。
+- **テーブル**: `push_subscriptions`（`supabase/migrations/20260807000000_push_notifications.sql`）。
+  1行 = 1ブラウザ（端末）の購読情報。同じ人が複数端末で購読できるよう
+  employee_idに対してendpoint違いで複数行持てる構成。
+- **対象者判定**: `public.get_pending_report_employees(target_date)` というSQL関数に
+  「出勤予定なのに未提出」の判定ロジックを集約している。`src/lib/schedule.ts`の
+  `effectiveScheduleStatus`（例外 > 曜日デフォルト、日曜=休み）と同じロジックを
+  SQLで再現しているため、**双方の判定ロジックを変更する場合は両方直すこと**。
+- **Edge Function**: `supabase/functions/send-report-reminders/index.ts`。
+  pg_cron（`kitatani-evening-report-reminder` = 09:00 UTC = 18:00 JST、
+  `kitatani-morning-report-reminder` = 21:00 UTC = 06:00 JST翌日）から
+  `net.http_post`で呼ばれる。認証ヘッダを付けたくない（サービスロールキーを
+  DBに保存したくない）ため `supabase functions deploy --no-verify-jwt` で
+  デプロイしている。VAPIDキーは `supabase secrets set` でFunction側にのみ
+  設定済み（`VAPID_PUBLIC_KEY` / `VAPID_PRIVATE_KEY` / `VAPID_SUBJECT`）。
+  公開鍵は `.env.local` の `NEXT_PUBLIC_VAPID_PUBLIC_KEY` にも設定し、
+  ブラウザの `pushManager.subscribe()` で使っている。
+- **クライアント側**: `src/components/push-subscribe-toggle.tsx`（`/home`に配置）で
+  本人が通知のオン/オフを切り替える。Service Workerの`push`/`notificationclick`
+  ハンドラは元々 `public/sw.js` に用意済みだったのでそのまま利用している。
+- **重要な制約**: iOSでWeb Pushを受け取るには、Safariの通常タブではなく
+  **ホーム画面に追加したPWA（standalone）として開いている必要があり、
+  iOS 16.4以降が必須**。ホーム画面追加前の従業員には通知トグル自体が
+  表示されない（`PushSubscribeToggle`が`PushManager`非対応を検知して非表示にする）。
+  そのため実運用前に、全従業員へ「ホーム画面に追加してから通知をオンにしてください」
+  という案内が必要。
+- `tsconfig.json`の`exclude`に`supabase/functions`を追加済み。Edge FunctionはDeno向けの
+  `npm:`import記法を使うため、Next.js側のTypeScriptチェック（`npm run build`）に
+  巻き込まれるとエラーになるための対応。同様のDeno関数を追加する場合も注意。
 
 ## データベース
 

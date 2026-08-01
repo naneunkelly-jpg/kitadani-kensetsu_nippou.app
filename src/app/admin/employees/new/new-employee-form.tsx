@@ -49,7 +49,7 @@ export function NewEmployeeForm() {
           placeholder="8文字以上"
         />
         <p className="mt-1 text-xs text-muted">
-          本人に伝えてください。ログイン後の変更機能は今後追加予定です。
+          本人に伝えてください。ログイン後、本人が「パスワードを変更する」から変更できます。
         </p>
       </div>
 

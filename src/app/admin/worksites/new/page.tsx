@@ -22,17 +22,19 @@ export default async function NewWorksitePage() {
 
   return (
     <>
-      <AppHeader userName={me?.full_name ?? "管理者"} roleLabel="管理者" />
+      <AppHeader userName={me?.full_name ?? "管理者"} roleLabel="管理者" backHref="/admin/worksites" />
       <AdminNav />
-      <main className="mx-auto w-full max-w-lg flex-1 px-4 py-6 space-y-4">
-        <h1 className="text-xl font-bold text-foreground">現場を追加</h1>
-        {(clients ?? []).length === 0 ? (
-          <p className="rounded-2xl border border-dashed border-border p-6 text-center text-muted">
-            先に元請け先を登録してください。
-          </p>
-        ) : (
-          <NewWorksiteForm clients={clients ?? []} />
-        )}
+      <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-6">
+        <div className="mx-auto w-full max-w-lg space-y-4">
+          <h1 className="text-xl font-bold text-foreground">現場を追加</h1>
+          {(clients ?? []).length === 0 ? (
+            <p className="rounded-2xl border border-dashed border-border p-6 text-center text-muted">
+              先に元請け先を登録してください。
+            </p>
+          ) : (
+            <NewWorksiteForm clients={clients ?? []} />
+          )}
+        </div>
       </main>
     </>
   );

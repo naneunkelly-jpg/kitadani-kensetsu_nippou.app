@@ -55,7 +55,7 @@ export default async function HolidaysPage({
     <>
       <AppHeader userName={me?.full_name ?? "管理者"} roleLabel="管理者" />
       <AdminNav />
-      <main className="mx-auto w-full max-w-4xl flex-1 px-4 py-6 space-y-6">
+      <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-6 space-y-6">
         <h1 className="text-xl font-bold text-foreground">会社カレンダー（公休日設定）</h1>
 
         <div className="rounded-2xl border border-border bg-card p-4">
@@ -112,7 +112,7 @@ export default async function HolidaysPage({
         </div>
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <SingleHolidayAddForm defaultDate={todayStr} />
+          <SingleHolidayAddForm />
           <RangeHolidayAddForm />
         </div>
 

@@ -122,6 +122,18 @@ export async function saveReportAction(
     return { error: `保存に失敗しました: ${reportError?.message ?? "不明なエラー"}` };
   }
 
+  // 出勤として日報を保存する場合、勤務状態も出勤予定に揃える
+  // （以前「休み」に変更されていた日を出勤に戻すケースを含む）。失敗しても日報保存自体は継続する。
+  await supabase.from("employee_schedules").upsert(
+    {
+      employee_id: user.id,
+      schedule_date: reportDate,
+      status: "scheduled_work",
+      updated_by: user.id,
+    },
+    { onConflict: "employee_id,schedule_date" }
+  );
+
   // 既存の作業明細を削除してから再登録する（写真もカスケード削除される）
   const { error: deleteError } = await supabase
     .from("work_entries")
@@ -176,4 +188,68 @@ export async function saveReportAction(
   revalidatePath(`/admin/reports/${report.id}`);
 
   return { reportId: report.id };
+}
+
+/**
+ * その日を「休み」として保存する。既にその日の日報（下書き含む）があれば削除し、
+ * employee_schedules に休みの例外を記録する。
+ */
+export async function markDayOffAction(reportDate: string): Promise<SaveReportResult> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { error: "ログインが必要です。" };
+  }
+
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(reportDate)) {
+    return { error: "日付が不正です。" };
+  }
+
+  const { data: existing } = await supabase
+    .from("daily_reports")
+    .select("id, status")
+    .eq("employee_id", user.id)
+    .eq("report_date", reportDate)
+    .maybeSingle();
+
+  if (existing?.status === "confirmed") {
+    return {
+      error: "この日報は管理者に確認済みのため変更できません。修正が必要な場合は管理者にご連絡ください。",
+    };
+  }
+
+  if (existing) {
+    const { error: deleteError } = await supabase
+      .from("daily_reports")
+      .delete()
+      .eq("id", existing.id);
+
+    if (deleteError) {
+      return { error: `保存に失敗しました: ${deleteError.message}` };
+    }
+  }
+
+  const { error: scheduleError } = await supabase.from("employee_schedules").upsert(
+    {
+      employee_id: user.id,
+      schedule_date: reportDate,
+      status: "day_off",
+      updated_by: user.id,
+    },
+    { onConflict: "employee_id,schedule_date" }
+  );
+
+  if (scheduleError) {
+    return { error: `保存に失敗しました: ${scheduleError.message}` };
+  }
+
+  revalidatePath("/home");
+  revalidatePath("/report");
+  revalidatePath("/admin");
+  revalidatePath("/admin/reports");
+
+  return {};
 }

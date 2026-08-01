@@ -64,8 +64,10 @@ export default async function ReportDetailPage({
       <AppHeader
         userName={profile?.full_name ?? "従業員"}
         roleLabel={profile?.role === "admin" ? "管理者" : "従業員"}
+        backHref="/report"
       />
-      <main className="mx-auto w-full max-w-2xl flex-1 px-4 py-6 space-y-4">
+      <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-6">
+        <div className="mx-auto w-full max-w-2xl space-y-4">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-xl font-bold text-foreground">{report.report_date}</h1>
@@ -136,6 +138,7 @@ export default async function ReportDetailPage({
         <Link href="/report" className="block text-center text-sm text-accent">
           一覧に戻る
         </Link>
+        </div>
       </main>
     </>
   );

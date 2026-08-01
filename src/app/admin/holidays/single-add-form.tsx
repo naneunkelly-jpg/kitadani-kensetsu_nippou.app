@@ -2,10 +2,11 @@
 
 import { useActionState } from "react";
 import { addHolidayAction, type FormState } from "./actions";
+import { DateSelect } from "@/components/date-select";
 
 const initialState: FormState = {};
 
-export function SingleHolidayAddForm({ defaultDate }: { defaultDate: string }) {
+export function SingleHolidayAddForm() {
   const [state, formAction, isPending] = useActionState(
     addHolidayAction,
     initialState
@@ -16,13 +17,7 @@ export function SingleHolidayAddForm({ defaultDate }: { defaultDate: string }) {
       <p className="font-semibold text-foreground">単日で登録</p>
       <div>
         <label className="mb-1 block text-sm font-medium text-foreground">日付</label>
-        <input
-          type="date"
-          name="date"
-          required
-          defaultValue={defaultDate}
-          className="w-full rounded-xl border border-border px-4 py-3 text-base outline-none focus:border-accent"
-        />
+        <DateSelect name="date" />
       </div>
       <div>
         <label className="mb-1 block text-sm font-medium text-foreground">名称</label>

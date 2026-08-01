@@ -23,7 +23,7 @@ export default async function ClientsPage() {
     <>
       <AppHeader userName={me?.full_name ?? "管理者"} roleLabel="管理者" />
       <AdminNav />
-      <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-6 space-y-4">
+      <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-6 space-y-4">
         <div className="flex items-center justify-between">
           <h1 className="text-xl font-bold text-foreground">元請け先管理</h1>
           <Link

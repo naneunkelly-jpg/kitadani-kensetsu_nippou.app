@@ -2,6 +2,7 @@
 
 import { useActionState } from "react";
 import { addHolidayRangeAction, type FormState } from "./actions";
+import { DateSelect } from "@/components/date-select";
 
 const initialState: FormState = {};
 
@@ -14,24 +15,14 @@ export function RangeHolidayAddForm() {
   return (
     <form action={formAction} className="space-y-3 rounded-2xl border border-border bg-card p-5">
       <p className="font-semibold text-foreground">期間で一括登録</p>
-      <div className="grid grid-cols-2 gap-3">
-        <div>
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <div className="min-w-0">
           <label className="mb-1 block text-sm font-medium text-foreground">開始日</label>
-          <input
-            type="date"
-            name="startDate"
-            required
-            className="w-full rounded-xl border border-border px-4 py-3 text-base outline-none focus:border-accent"
-          />
+          <DateSelect name="startDate" />
         </div>
-        <div>
+        <div className="min-w-0">
           <label className="mb-1 block text-sm font-medium text-foreground">終了日</label>
-          <input
-            type="date"
-            name="endDate"
-            required
-            className="w-full rounded-xl border border-border px-4 py-3 text-base outline-none focus:border-accent"
-          />
+          <DateSelect name="endDate" />
         </div>
       </div>
       <div>

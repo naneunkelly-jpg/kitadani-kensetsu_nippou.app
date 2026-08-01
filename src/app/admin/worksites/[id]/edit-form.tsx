@@ -3,6 +3,7 @@
 import { useActionState } from "react";
 import { updateWorksiteAction, type FormState } from "../actions";
 import { WORKSITE_STATUS_OPTIONS } from "@/lib/worksite-status";
+import { DateSelect } from "@/components/date-select";
 
 const initialState: FormState = {};
 
@@ -71,24 +72,14 @@ export function WorksiteEditForm({
         />
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
-        <div>
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <div className="min-w-0">
           <label className="mb-1 block text-sm font-medium text-foreground">開始日</label>
-          <input
-            type="date"
-            name="startDate"
-            defaultValue={startDate ?? ""}
-            className="w-full rounded-xl border border-border px-4 py-3 text-base outline-none focus:border-accent"
-          />
+          <DateSelect name="startDate" defaultValue={startDate ?? ""} />
         </div>
-        <div>
+        <div className="min-w-0">
           <label className="mb-1 block text-sm font-medium text-foreground">終了予定日</label>
-          <input
-            type="date"
-            name="endDate"
-            defaultValue={endDate ?? ""}
-            className="w-full rounded-xl border border-border px-4 py-3 text-base outline-none focus:border-accent"
-          />
+          <DateSelect name="endDate" defaultValue={endDate ?? ""} />
         </div>
       </div>
 

@@ -34,26 +34,28 @@ export default async function WorksiteDetailPage({
 
   return (
     <>
-      <AppHeader userName={me?.full_name ?? "管理者"} roleLabel="管理者" />
+      <AppHeader userName={me?.full_name ?? "管理者"} roleLabel="管理者" backHref="/admin/worksites" />
       <AdminNav />
-      <main className="mx-auto w-full max-w-lg flex-1 px-4 py-6 space-y-4">
-        <div className="flex items-center justify-between">
-          <h1 className="text-xl font-bold text-foreground">現場編集</h1>
-          <Link href="/admin/worksites" className="text-sm text-accent">
-            一覧に戻る
-          </Link>
+      <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-6">
+        <div className="mx-auto w-full max-w-lg space-y-4">
+          <div className="flex items-center justify-between">
+            <h1 className="text-xl font-bold text-foreground">現場編集</h1>
+            <Link href="/admin/worksites" className="text-sm text-accent">
+              一覧に戻る
+            </Link>
+          </div>
+          <WorksiteEditForm
+            id={item.id}
+            clients={clients ?? []}
+            clientId={item.client_id}
+            name={item.name}
+            address={item.address}
+            startDate={item.start_date}
+            endDate={item.end_date}
+            status={item.status}
+            note={item.note}
+          />
         </div>
-        <WorksiteEditForm
-          id={item.id}
-          clients={clients ?? []}
-          clientId={item.client_id}
-          name={item.name}
-          address={item.address}
-          startDate={item.start_date}
-          endDate={item.end_date}
-          status={item.status}
-          note={item.note}
-        />
       </main>
     </>
   );

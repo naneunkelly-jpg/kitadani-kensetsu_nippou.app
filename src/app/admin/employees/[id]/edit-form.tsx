@@ -73,9 +73,14 @@ export function PasswordResetForm({ employeeId }: { employeeId: string }) {
   return (
     <form action={formAction} className="space-y-3 rounded-2xl border border-border bg-card p-6">
       <input type="hidden" name="employeeId" value={employeeId} />
-      <label className="mb-1 block text-sm font-medium text-foreground">
-        パスワードを再設定
-      </label>
+      <div>
+        <label className="mb-1 block text-sm font-medium text-foreground">
+          パスワードの緊急再設定
+        </label>
+        <p className="text-xs text-muted">
+          通常は本人がログイン後「パスワードを変更する」から変更します。パスワードを忘れて連絡があった場合など、緊急時のみ使用してください。
+        </p>
+      </div>
       <input
         name="password"
         type="text"

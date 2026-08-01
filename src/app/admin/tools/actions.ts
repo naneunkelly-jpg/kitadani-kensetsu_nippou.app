@@ -87,3 +87,26 @@ export async function updateToolAction(
   revalidatePath(`/admin/tools/${parsed.data.id}`);
   return {};
 }
+
+export async function deleteToolAction(id: string): Promise<FormState> {
+  const { supabase } = await requireAdmin();
+
+  const { count } = await supabase
+    .from("tool_checkouts")
+    .select("id", { count: "exact", head: true })
+    .eq("tool_id", id);
+
+  if ((count ?? 0) > 0) {
+    return {
+      error: "持ち出し履歴がある工具は削除できません。使わなくなった場合は編集画面から「無効」にしてください。",
+    };
+  }
+
+  const { error } = await supabase.from("tools").delete().eq("id", id);
+  if (error) {
+    return { error: `削除に失敗しました: ${error.message}` };
+  }
+
+  revalidatePath("/admin/tools");
+  return {};
+}

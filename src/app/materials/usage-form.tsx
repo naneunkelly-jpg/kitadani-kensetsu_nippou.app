@@ -3,17 +3,16 @@
 import { useMemo, useState } from "react";
 import { useActionState } from "react";
 import { recordMaterialUsageAction, type MaterialActionState } from "./actions";
+import { DateSelect } from "@/components/date-select";
 
 const initialState: MaterialActionState = {};
 
 export function MaterialUsageForm({
   materials,
   worksites,
-  today,
 }: {
   materials: { id: string; name: string; unit: string }[];
   worksites: { id: string; name: string }[];
-  today: string;
 }) {
   const [state, formAction, isPending] = useActionState(
     recordMaterialUsageAction,
@@ -94,13 +93,7 @@ export function MaterialUsageForm({
 
       <div>
         <label className="mb-1 block text-sm font-medium text-foreground">使用日</label>
-        <input
-          name="usedDate"
-          type="date"
-          defaultValue={today}
-          required
-          className="w-full rounded-xl border border-border px-4 py-3 text-base outline-none focus:border-accent"
-        />
+        <DateSelect name="usedDate" />
       </div>
 
       <div>

@@ -31,21 +31,23 @@ export default async function ClientDetailPage({
 
   return (
     <>
-      <AppHeader userName={me?.full_name ?? "管理者"} roleLabel="管理者" />
+      <AppHeader userName={me?.full_name ?? "管理者"} roleLabel="管理者" backHref="/admin/clients" />
       <AdminNav />
-      <main className="mx-auto w-full max-w-lg flex-1 px-4 py-6 space-y-4">
-        <div className="flex items-center justify-between">
-          <h1 className="text-xl font-bold text-foreground">元請け先編集</h1>
-          <Link href="/admin/clients" className="text-sm text-accent">
-            一覧に戻る
-          </Link>
+      <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-6">
+        <div className="mx-auto w-full max-w-lg space-y-4">
+          <div className="flex items-center justify-between">
+            <h1 className="text-xl font-bold text-foreground">元請け先編集</h1>
+            <Link href="/admin/clients" className="text-sm text-accent">
+              一覧に戻る
+            </Link>
+          </div>
+          <ClientEditForm
+            id={item.id}
+            name={item.name}
+            note={item.note}
+            isActive={item.is_active}
+          />
         </div>
-        <ClientEditForm
-          id={item.id}
-          name={item.name}
-          note={item.note}
-          isActive={item.is_active}
-        />
       </main>
     </>
   );

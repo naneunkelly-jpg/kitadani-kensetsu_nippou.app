@@ -87,3 +87,51 @@ export async function updateMaterialAction(
   revalidatePath(`/admin/materials/${parsed.data.id}`);
   return {};
 }
+
+const stockEntrySchema = z.object({
+  materialId: z.string().uuid(),
+  quantity: z.coerce.number().positive("数量は0より大きい値を入力してください。"),
+  note: z.string().trim().optional(),
+});
+
+export async function addMaterialStockAction(
+  _prevState: FormState,
+  formData: FormData
+): Promise<FormState> {
+  const { supabase, userId } = await requireAdmin();
+
+  const parsed = stockEntrySchema.safeParse({
+    materialId: formData.get("materialId"),
+    quantity: formData.get("quantity"),
+    note: formData.get("note"),
+  });
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0]?.message ?? "入力内容を確認してください。" };
+  }
+
+  const { error } = await supabase.from("material_stock_entries").insert({
+    material_id: parsed.data.materialId,
+    quantity: parsed.data.quantity,
+    note: parsed.data.note ?? "",
+    entered_by: userId,
+  });
+
+  if (error) {
+    return { error: `登録に失敗しました: ${error.message}` };
+  }
+
+  revalidatePath("/admin/materials");
+  return {};
+}
+
+export async function deleteMaterialStockEntryAction(id: string): Promise<FormState> {
+  const { supabase } = await requireAdmin();
+
+  const { error } = await supabase.from("material_stock_entries").delete().eq("id", id);
+  if (error) {
+    return { error: `削除に失敗しました: ${error.message}` };
+  }
+
+  revalidatePath("/admin/materials");
+  return {};
+}

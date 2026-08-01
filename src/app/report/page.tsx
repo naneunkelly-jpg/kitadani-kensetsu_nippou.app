@@ -52,9 +52,11 @@ export default async function ReportHistoryPage() {
       <AppHeader
         userName={profile?.full_name ?? "従業員"}
         roleLabel={profile?.role === "admin" ? "管理者" : "従業員"}
+        backHref="/home"
       />
-      <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-6 space-y-3">
-        <h1 className="text-xl font-bold text-foreground">過去の日報</h1>
+      <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-6">
+        <div className="mx-auto w-full max-w-2xl space-y-3">
+          <h1 className="text-xl font-bold text-foreground">過去の日報</h1>
 
         {(reports ?? []).map((r) => {
           const sites = entriesByReport.get(r.id) ?? [];
@@ -93,11 +95,12 @@ export default async function ReportHistoryPage() {
           );
         })}
 
-        {(reports ?? []).length === 0 && (
-          <p className="rounded-2xl border border-dashed border-border p-6 text-center text-muted">
-            まだ日報がありません。
-          </p>
-        )}
+          {(reports ?? []).length === 0 && (
+            <p className="rounded-2xl border border-dashed border-border p-6 text-center text-muted">
+              まだ日報がありません。
+            </p>
+          )}
+        </div>
       </main>
     </>
   );

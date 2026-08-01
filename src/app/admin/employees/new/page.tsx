@@ -16,11 +16,13 @@ export default async function NewEmployeePage() {
 
   return (
     <>
-      <AppHeader userName={me?.full_name ?? "管理者"} roleLabel="管理者" />
+      <AppHeader userName={me?.full_name ?? "管理者"} roleLabel="管理者" backHref="/admin/employees" />
       <AdminNav />
-      <main className="mx-auto w-full max-w-lg flex-1 px-4 py-6 space-y-4">
-        <h1 className="text-xl font-bold text-foreground">従業員を追加</h1>
-        <NewEmployeeForm />
+      <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-6">
+        <div className="mx-auto w-full max-w-lg space-y-4">
+          <h1 className="text-xl font-bold text-foreground">従業員を追加</h1>
+          <NewEmployeeForm />
+        </div>
       </main>
     </>
   );

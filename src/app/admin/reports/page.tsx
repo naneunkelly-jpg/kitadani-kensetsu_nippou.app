@@ -2,6 +2,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { AppHeader } from "@/components/app-header";
 import { AdminNav } from "@/components/admin-nav";
+import { DateSelect } from "@/components/date-select";
 import { REPORT_STATUS_LABELS } from "@/lib/report-status";
 
 type SearchParams = {
@@ -93,27 +94,17 @@ export default async function AdminReportsPage({
     <>
       <AppHeader userName={me?.full_name ?? "管理者"} roleLabel="管理者" />
       <AdminNav />
-      <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-6 space-y-4">
+      <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-6 space-y-4">
         <h1 className="text-xl font-bold text-foreground">日報一覧</h1>
 
-        <form className="grid grid-cols-2 gap-3 rounded-2xl border border-border bg-card p-4 sm:grid-cols-3 md:grid-cols-6">
-          <div>
+        <form className="grid grid-cols-1 gap-3 rounded-2xl border border-border bg-card p-4 sm:grid-cols-3 md:grid-cols-6">
+          <div className="min-w-0 md:col-span-3">
             <label className="mb-1 block text-xs text-muted">開始日</label>
-            <input
-              type="date"
-              name="dateFrom"
-              defaultValue={sp.dateFrom}
-              className="w-full rounded-lg border border-border px-2 py-2 text-sm"
-            />
+            <DateSelect name="dateFrom" defaultValue={sp.dateFrom} />
           </div>
-          <div>
+          <div className="min-w-0 md:col-span-3">
             <label className="mb-1 block text-xs text-muted">終了日</label>
-            <input
-              type="date"
-              name="dateTo"
-              defaultValue={sp.dateTo}
-              className="w-full rounded-lg border border-border px-2 py-2 text-sm"
-            />
+            <DateSelect name="dateTo" defaultValue={sp.dateTo} />
           </div>
           <div>
             <label className="mb-1 block text-xs text-muted">従業員</label>
@@ -173,33 +164,39 @@ export default async function AdminReportsPage({
               <option value="confirmed">確認済み</option>
             </select>
           </div>
-          <div className="col-span-2 sm:col-span-3 md:col-span-6">
+          <div className="col-span-1 flex gap-3 sm:col-span-3 md:col-span-6">
             <button
               type="submit"
               className="rounded-xl bg-accent px-4 py-2 text-sm font-semibold text-accent-foreground"
             >
               絞り込む
             </button>
+            <Link
+              href="/admin/reports"
+              className="rounded-xl border border-border px-4 py-2 text-sm font-medium text-muted active:bg-gray-100"
+            >
+              リセット（すべて表示）
+            </Link>
           </div>
         </form>
 
         <div className="overflow-x-auto rounded-2xl border border-border bg-card">
-          <table className="w-full text-sm">
+          <table className="w-full min-w-[720px] text-sm">
             <thead className="bg-gray-50 text-left text-xs text-muted">
               <tr>
-                <th className="px-4 py-3">日付</th>
-                <th className="px-4 py-3">従業員</th>
-                <th className="px-4 py-3">元請け先</th>
-                <th className="px-4 py-3">現場</th>
-                <th className="px-4 py-3">作業内容</th>
-                <th className="px-4 py-3">提出時間</th>
-                <th className="px-4 py-3">ステータス</th>
+                <th className="whitespace-nowrap px-4 py-3">日付</th>
+                <th className="whitespace-nowrap px-4 py-3">従業員</th>
+                <th className="whitespace-nowrap px-4 py-3">元請け先</th>
+                <th className="whitespace-nowrap px-4 py-3">現場</th>
+                <th className="whitespace-nowrap px-4 py-3">作業内容</th>
+                <th className="whitespace-nowrap px-4 py-3">提出時間</th>
+                <th className="whitespace-nowrap px-4 py-3">ステータス</th>
               </tr>
             </thead>
             <tbody>
               {rows.map((row, i) => (
                 <tr key={i} className="border-t border-border">
-                  <td className="px-4 py-3">
+                  <td className="whitespace-nowrap px-4 py-3">
                     <Link
                       href={`/admin/reports/${row.reportId}`}
                       className="text-foreground underline-offset-2 hover:underline"
@@ -207,13 +204,13 @@ export default async function AdminReportsPage({
                       {row.reportDate}
                     </Link>
                   </td>
-                  <td className="px-4 py-3">{row.employeeName}</td>
-                  <td className="px-4 py-3">{row.clientName}</td>
-                  <td className="px-4 py-3">{row.worksiteName}</td>
+                  <td className="whitespace-nowrap px-4 py-3">{row.employeeName}</td>
+                  <td className="whitespace-nowrap px-4 py-3">{row.clientName}</td>
+                  <td className="whitespace-nowrap px-4 py-3">{row.worksiteName}</td>
                   <td className="max-w-xs truncate px-4 py-3 text-muted">
                     {row.workDetail}
                   </td>
-                  <td className="px-4 py-3 text-muted">
+                  <td className="whitespace-nowrap px-4 py-3 text-muted">
                     {row.submittedAt
                       ? new Date(row.submittedAt).toLocaleTimeString("ja-JP", {
                           hour: "2-digit",
@@ -222,7 +219,7 @@ export default async function AdminReportsPage({
                         })
                       : "―"}
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="whitespace-nowrap px-4 py-3">
                     <span
                       className={`whitespace-nowrap rounded-full px-2 py-1 text-xs font-medium ${
                         row.status === "confirmed"

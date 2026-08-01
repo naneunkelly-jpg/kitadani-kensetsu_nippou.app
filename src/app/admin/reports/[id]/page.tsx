@@ -70,9 +70,10 @@ export default async function AdminReportDetailPage({
 
   return (
     <>
-      <AppHeader userName={me?.full_name ?? "管理者"} roleLabel="管理者" />
+      <AppHeader userName={me?.full_name ?? "管理者"} roleLabel="管理者" backHref="/admin/reports" />
       <AdminNav />
-      <main className="mx-auto w-full max-w-2xl flex-1 px-4 py-6 space-y-4">
+      <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-6">
+        <div className="mx-auto w-full max-w-2xl space-y-4">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-xl font-bold text-foreground">
@@ -140,6 +141,7 @@ export default async function AdminReportDetailPage({
         <Link href="/admin/reports" className="block text-center text-sm text-accent">
           一覧に戻る
         </Link>
+        </div>
       </main>
     </>
   );

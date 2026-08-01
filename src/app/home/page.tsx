@@ -2,9 +2,8 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { AppHeader } from "@/components/app-header";
-import { ScheduleToggle } from "@/components/schedule-toggle";
+import { PushSubscribeToggle } from "@/components/push-subscribe-toggle";
 import { getTodayJstString } from "@/lib/date";
-import { effectiveScheduleStatus } from "@/lib/schedule";
 import { REPORT_STATUS_LABELS } from "@/lib/report-status";
 
 export default async function HomePage() {
@@ -17,15 +16,9 @@ export default async function HomePage() {
 
   const todayStr = getTodayJstString();
 
-  const [{ data: profile }, { data: scheduleOverride }, { data: todayReport }, { count: openToolCount }] =
+  const [{ data: profile }, { data: todayReport }, { count: openToolCount }] =
     await Promise.all([
       supabase.from("profiles").select("full_name, role").eq("id", user.id).single(),
-      supabase
-        .from("employee_schedules")
-        .select("status")
-        .eq("employee_id", user.id)
-        .eq("schedule_date", todayStr)
-        .maybeSingle(),
       supabase
         .from("daily_reports")
         .select("status")
@@ -39,7 +32,6 @@ export default async function HomePage() {
         .is("returned_at", null),
     ]);
 
-  const status = effectiveScheduleStatus(todayStr, scheduleOverride?.status);
   const reportStatusLabel = todayReport
     ? (REPORT_STATUS_LABELS[todayReport.status] ?? todayReport.status)
     : "未提出";
@@ -60,7 +52,8 @@ export default async function HomePage() {
         userName={profile?.full_name ?? "従業員"}
         roleLabel={profile?.role === "admin" ? "管理者" : "従業員"}
       />
-      <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-6 space-y-4">
+      <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-6">
+      <div className="mx-auto w-full max-w-2xl space-y-4">
         <p className="text-sm text-muted">{dateLabel}</p>
 
         {/* 今日の日報を書く：最重要アクションを最上部・最大に配置 */}
@@ -70,6 +63,25 @@ export default async function HomePage() {
         >
           {todayReport ? "今日の日報を編集する" : "今日の日報を書く"}
         </Link>
+
+        {/* 工具・材料の記録：主要アクションほどではないが目立たせる */}
+        <div className="grid grid-cols-2 gap-4">
+          <Link
+            href="/tools"
+            className="rounded-2xl border-2 border-accent bg-accent/5 px-4 py-4 text-center active:bg-accent/10"
+          >
+            <p className="font-semibold text-accent">工具の持ち出し・返却</p>
+            <p className="mt-1 text-sm text-muted">持ち出し中 {openToolCount ?? 0}件</p>
+          </Link>
+
+          <Link
+            href="/materials"
+            className="rounded-2xl border-2 border-accent bg-accent/5 px-4 py-4 text-center active:bg-accent/10"
+          >
+            <p className="font-semibold text-accent">材料の使用記録</p>
+            <p className="mt-1 text-sm text-muted">記録する</p>
+          </Link>
+        </div>
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div className="rounded-2xl border border-border bg-card p-5">
@@ -83,16 +95,6 @@ export default async function HomePage() {
             </p>
           </div>
 
-          <ScheduleToggle initialStatus={status} />
-
-          <Link
-            href="/tools"
-            className="rounded-2xl border border-border bg-card p-5 active:bg-gray-50"
-          >
-            <p className="text-sm text-muted">現在持ち出している工具</p>
-            <p className="mt-1 text-xl font-bold text-foreground">{openToolCount ?? 0}件</p>
-          </Link>
-
           <Link
             href="/report"
             className="rounded-2xl border border-border bg-card p-5 active:bg-gray-50"
@@ -100,15 +102,17 @@ export default async function HomePage() {
             <p className="text-sm text-muted">過去の日報</p>
             <p className="mt-1 text-xl font-bold text-foreground">見る</p>
           </Link>
-
-          <Link
-            href="/materials"
-            className="rounded-2xl border border-border bg-card p-5 active:bg-gray-50"
-          >
-            <p className="text-sm text-muted">材料の使用記録</p>
-            <p className="mt-1 text-xl font-bold text-foreground">記録する</p>
-          </Link>
         </div>
+
+        <PushSubscribeToggle />
+
+        <Link
+          href="/account/password"
+          className="block text-center text-sm text-accent underline-offset-2 hover:underline"
+        >
+          パスワードを変更する
+        </Link>
+      </div>
       </main>
     </>
   );

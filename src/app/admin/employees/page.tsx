@@ -24,7 +24,7 @@ export default async function EmployeesPage() {
     <>
       <AppHeader userName={me?.full_name ?? "管理者"} roleLabel="管理者" />
       <AdminNav />
-      <main className="mx-auto w-full max-w-4xl flex-1 px-4 py-6 space-y-4">
+      <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-6 space-y-4">
         <div className="flex items-center justify-between">
           <h1 className="text-xl font-bold text-foreground">従業員管理</h1>
           <Link
@@ -35,20 +35,20 @@ export default async function EmployeesPage() {
           </Link>
         </div>
 
-        <div className="overflow-hidden rounded-2xl border border-border bg-card">
-          <table className="w-full text-sm">
+        <div className="overflow-x-auto rounded-2xl border border-border bg-card">
+          <table className="w-full min-w-[480px] text-sm">
             <thead className="bg-gray-50 text-left text-xs text-muted">
               <tr>
-                <th className="px-4 py-3">氏名</th>
-                <th className="px-4 py-3">社員コード</th>
-                <th className="px-4 py-3">権限</th>
-                <th className="px-4 py-3">在籍状態</th>
+                <th className="whitespace-nowrap px-4 py-3">氏名</th>
+                <th className="whitespace-nowrap px-4 py-3">社員コード</th>
+                <th className="whitespace-nowrap px-4 py-3">権限</th>
+                <th className="whitespace-nowrap px-4 py-3">在籍状態</th>
               </tr>
             </thead>
             <tbody>
               {(employees ?? []).map((emp) => (
                 <tr key={emp.id} className="border-t border-border">
-                  <td className="px-4 py-3">
+                  <td className="whitespace-nowrap px-4 py-3">
                     <Link
                       href={`/admin/employees/${emp.id}`}
                       className="font-medium text-foreground underline-offset-2 hover:underline"
@@ -56,11 +56,11 @@ export default async function EmployeesPage() {
                       {emp.full_name || "(未設定)"}
                     </Link>
                   </td>
-                  <td className="px-4 py-3 text-muted">{emp.employee_code}</td>
-                  <td className="px-4 py-3 text-muted">
+                  <td className="whitespace-nowrap px-4 py-3 text-muted">{emp.employee_code}</td>
+                  <td className="whitespace-nowrap px-4 py-3 text-muted">
                     {emp.role === "admin" ? "管理者" : "従業員"}
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="whitespace-nowrap px-4 py-3">
                     {emp.is_active ? (
                       <span className="rounded-full bg-green-50 px-2 py-1 text-xs font-medium text-success">
                         在籍中

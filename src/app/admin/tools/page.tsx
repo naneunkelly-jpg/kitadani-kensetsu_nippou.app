@@ -2,6 +2,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { AppHeader } from "@/components/app-header";
 import { AdminNav } from "@/components/admin-nav";
+import { ToolGroupList, type ToolGroup } from "./tool-group-list";
 
 export default async function AdminToolsPage() {
   const supabase = await createClient();
@@ -17,8 +18,8 @@ export default async function AdminToolsPage() {
   const [{ data: tools }, { data: openCheckouts }] = await Promise.all([
     supabase
       .from("tools")
-      .select("id, name, management_no, note, is_active")
-      .order("created_at", { ascending: true }),
+      .select("id, name, management_no, note, is_active, created_at")
+      .order("management_no", { ascending: true }),
     supabase
       .from("tool_checkouts")
       .select("tool_id, checked_out_at, profiles(full_name)")
@@ -28,22 +29,40 @@ export default async function AdminToolsPage() {
   const checkoutByToolId = new Map(
     (openCheckouts ?? []).map((c) => {
       const profile = Array.isArray(c.profiles) ? c.profiles[0] : c.profiles;
-      return [c.tool_id, { name: profile?.full_name ?? "", checkedOutAt: c.checked_out_at }];
+      return [c.tool_id, { employeeName: profile?.full_name ?? "", checkedOutAt: c.checked_out_at }];
     })
+  );
+
+  // 同じ名前の工具（号機違い）を1グループにまとめる。
+  // 追加順ではなく工具名の五十音順で並べることで、種類が増えても管理しやすくする。
+  const groupMap = new Map<string, ToolGroup>();
+  for (const t of tools ?? []) {
+    const group: ToolGroup = groupMap.get(t.name) ?? { name: t.name, units: [] };
+    group.units.push({
+      id: t.id,
+      managementNo: t.management_no,
+      note: t.note,
+      isActive: t.is_active,
+      checkout: checkoutByToolId.get(t.id) ?? null,
+    });
+    groupMap.set(t.name, group);
+  }
+  const groups = Array.from(groupMap.values()).sort((a, b) =>
+    a.name.localeCompare(b.name, "ja")
   );
 
   return (
     <>
       <AppHeader userName={me?.full_name ?? "管理者"} roleLabel="管理者" />
       <AdminNav />
-      <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-6 space-y-6">
+      <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-6 space-y-6">
         <div className="flex items-center justify-between">
           <h1 className="text-xl font-bold text-foreground">工具管理</h1>
           <Link
             href="/admin/tools/new"
             className="rounded-xl bg-accent px-4 py-2 text-sm font-semibold text-accent-foreground"
           >
-            ＋ 工具を追加
+            ＋ 新しい工具を追加
           </Link>
         </div>
 
@@ -58,7 +77,8 @@ export default async function AdminToolsPage() {
                 const tool = (tools ?? []).find((t) => t.id === c.tool_id);
                 return (
                   <li key={i}>
-                    {tool?.name ?? ""} — {profile?.full_name ?? ""}
+                    {tool?.name ?? ""}
+                    {tool?.management_no && ` #${tool.management_no}`} — {profile?.full_name ?? ""}
                     （
                     {new Date(c.checked_out_at).toLocaleDateString("ja-JP", {
                       month: "numeric",
@@ -72,49 +92,13 @@ export default async function AdminToolsPage() {
           </div>
         )}
 
-        <div className="space-y-2">
-          {(tools ?? []).map((t) => {
-            const checkout = checkoutByToolId.get(t.id);
-            return (
-              <Link
-                key={t.id}
-                href={`/admin/tools/${t.id}`}
-                className="flex items-center justify-between rounded-2xl border border-border bg-card p-4 hover:bg-gray-50"
-              >
-                <div>
-                  <p className="font-medium text-foreground">
-                    {t.name}
-                    {t.management_no && (
-                      <span className="ml-2 text-xs text-muted">#{t.management_no}</span>
-                    )}
-                  </p>
-                  {t.note && <p className="text-sm text-muted">{t.note}</p>}
-                </div>
-                <div className="flex items-center gap-2">
-                  {checkout ? (
-                    <span className="rounded-full bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700">
-                      {checkout.name} 持ち出し中
-                    </span>
-                  ) : (
-                    <span className="rounded-full bg-green-50 px-2 py-1 text-xs font-medium text-success">
-                      在庫あり
-                    </span>
-                  )}
-                  {!t.is_active && (
-                    <span className="rounded-full bg-gray-100 px-2 py-1 text-xs font-medium text-muted">
-                      無効
-                    </span>
-                  )}
-                </div>
-              </Link>
-            );
-          })}
-          {(tools ?? []).length === 0 && (
-            <p className="rounded-2xl border border-dashed border-border p-6 text-center text-muted">
-              工具がまだ登録されていません。
-            </p>
-          )}
-        </div>
+        <ToolGroupList groups={groups} />
+
+        {groups.length === 0 && (
+          <p className="rounded-2xl border border-dashed border-border p-6 text-center text-muted">
+            工具がまだ登録されていません。
+          </p>
+        )}
       </main>
     </>
   );

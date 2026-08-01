@@ -1,7 +1,6 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { AppHeader } from "@/components/app-header";
-import { getTodayJstString } from "@/lib/date";
 import { MaterialUsageForm } from "./usage-form";
 import { DeleteMaterialUsageButton } from "./delete-usage-button";
 
@@ -39,8 +38,10 @@ export default async function MaterialsPage() {
       <AppHeader
         userName={profile?.full_name ?? "従業員"}
         roleLabel={profile?.role === "admin" ? "管理者" : "従業員"}
+        backHref="/home"
       />
-      <main className="mx-auto w-full max-w-2xl flex-1 px-4 py-6 space-y-6">
+      <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-6">
+        <div className="mx-auto w-full max-w-2xl space-y-6">
         <h1 className="text-xl font-bold text-foreground">材料の使用記録</h1>
 
         <div>
@@ -48,7 +49,6 @@ export default async function MaterialsPage() {
           <MaterialUsageForm
             materials={materials ?? []}
             worksites={worksites ?? []}
-            today={getTodayJstString()}
           />
         </div>
 
@@ -84,6 +84,7 @@ export default async function MaterialsPage() {
               })}
             </div>
           )}
+        </div>
         </div>
       </main>
     </>
