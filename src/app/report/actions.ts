@@ -253,3 +253,55 @@ export async function markDayOffAction(reportDate: string): Promise<SaveReportRe
 
   return {};
 }
+
+/**
+ * 日報を削除する（本人 or 管理者）。work_entries/report_photosは
+ * daily_reportsへのON DELETE CASCADEで一緒に削除される。
+ * 本人が削除する場合、管理者確認済み（confirmed）は削除させない
+ * （管理者は確認済みでも削除できる）。
+ */
+export async function deleteReportAction(reportId: string): Promise<SaveReportResult> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { error: "ログインが必要です。" };
+  }
+
+  const { data: report } = await supabase
+    .from("daily_reports")
+    .select("status")
+    .eq("id", reportId)
+    .single();
+
+  if (!report) {
+    return { error: "日報が見つかりません。" };
+  }
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .single();
+  const isAdmin = profile?.role === "admin";
+
+  if (report.status === "confirmed" && !isAdmin) {
+    return {
+      error: "この日報は管理者に確認済みのため削除できません。修正が必要な場合は管理者にご連絡ください。",
+    };
+  }
+
+  const { error } = await supabase.from("daily_reports").delete().eq("id", reportId);
+  if (error) {
+    return { error: `削除に失敗しました: ${error.message}` };
+  }
+
+  revalidatePath("/home");
+  revalidatePath("/report");
+  revalidatePath("/admin");
+  revalidatePath("/admin/reports");
+
+  return {};
+}

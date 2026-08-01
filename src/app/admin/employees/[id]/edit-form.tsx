@@ -12,11 +12,13 @@ const initialState: FormState = {};
 export function EmployeeEditForm({
   employeeId,
   fullName,
+  employeeCode,
   isActive,
   isAdmin,
 }: {
   employeeId: string;
   fullName: string;
+  employeeCode: string;
   isActive: boolean;
   isAdmin: boolean;
 }) {
@@ -37,6 +39,19 @@ export function EmployeeEditForm({
           required
           className="w-full rounded-xl border border-border px-4 py-3 text-base outline-none focus:border-accent"
         />
+      </div>
+
+      <div>
+        <label className="mb-1 block text-sm font-medium text-foreground">社員コード</label>
+        <input
+          name="employeeCode"
+          defaultValue={employeeCode}
+          required
+          className="w-full rounded-xl border border-border px-4 py-3 text-base outline-none focus:border-accent"
+        />
+        <p className="mt-1 text-xs text-muted">
+          ログイン画面で入力するIDです。変更するとログイン用のIDも変わります。
+        </p>
       </div>
 
       <label className="flex items-center gap-2 text-sm text-foreground">

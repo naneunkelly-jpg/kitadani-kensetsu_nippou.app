@@ -3,6 +3,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { AppHeader } from "@/components/app-header";
 import { AdminNav } from "@/components/admin-nav";
+import { DeleteReportButton } from "@/components/delete-report-button";
 import { REPORT_STATUS_LABELS } from "@/lib/report-status";
 import { ConfirmReportButton } from "./confirm-button";
 
@@ -91,9 +92,12 @@ export default async function AdminReportDetailPage({
               {REPORT_STATUS_LABELS[report.status] ?? report.status}
             </span>
           </div>
-          {report.status === "submitted" && (
-            <ConfirmReportButton reportId={report.id} />
-          )}
+          <div className="flex gap-2">
+            {report.status === "submitted" && (
+              <ConfirmReportButton reportId={report.id} />
+            )}
+            <DeleteReportButton reportId={report.id} redirectTo="/admin/reports" />
+          </div>
         </div>
 
         {entriesWithPhotos.map((e) => (

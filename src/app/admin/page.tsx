@@ -29,7 +29,7 @@ export default async function AdminDashboardPage() {
     timeZone: "Asia/Tokyo",
   });
 
-  const [{ data: employees }, { data: scheduleOverrides }, { data: todayReports }] =
+  const [{ data: employees }, { data: scheduleOverrides }, { data: todayReports }, { data: myReport }] =
     await Promise.all([
       supabase
         .from("profiles")
@@ -42,8 +42,14 @@ export default async function AdminDashboardPage() {
         .eq("schedule_date", todayStr),
       supabase
         .from("daily_reports")
-        .select("employee_id, status")
+        .select("id, employee_id, status")
         .eq("report_date", todayStr),
+      supabase
+        .from("daily_reports")
+        .select("status")
+        .eq("employee_id", user.id)
+        .eq("report_date", todayStr)
+        .maybeSingle(),
     ]);
 
   const overrideByEmployee = new Map(
@@ -51,6 +57,9 @@ export default async function AdminDashboardPage() {
   );
   const reportByEmployee = new Map(
     (todayReports ?? []).map((r) => [r.employee_id, r.status])
+  );
+  const reportIdByEmployee = new Map(
+    (todayReports ?? []).map((r) => [r.employee_id, r.id])
   );
 
   const scheduledEmployees = (employees ?? []).filter(
@@ -66,6 +75,11 @@ export default async function AdminDashboardPage() {
   const unsubmittedEmployees = scheduledEmployees.filter((e) => {
     const status = reportByEmployee.get(e.id);
     return status !== "submitted" && status !== "confirmed";
+  });
+
+  const submittedEmployees = scheduledEmployees.filter((e) => {
+    const status = reportByEmployee.get(e.id);
+    return status === "submitted" || status === "confirmed";
   });
 
   const submissionRate =
@@ -86,6 +100,14 @@ export default async function AdminDashboardPage() {
       <AdminNav />
       <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-6 space-y-6">
         <p className="text-sm text-muted">{today}</p>
+
+        <Link
+          href="/report/new"
+          className="block rounded-2xl bg-accent px-5 py-4 text-center text-base font-bold text-accent-foreground shadow-sm active:opacity-90"
+        >
+          {myReport ? "今日の日報を編集する" : "今日の日報を書く"}
+        </Link>
+
         <h1 className="text-xl font-bold text-foreground">本日の状況</h1>
 
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
@@ -122,6 +144,43 @@ export default async function AdminDashboardPage() {
                   </span>
                 </li>
               ))}
+            </ul>
+          )}
+        </div>
+
+        <div className="space-y-3">
+          <h2 className="text-base font-bold text-foreground">
+            提出済み（出勤予定・{submittedEmployees.length}人）
+          </h2>
+          {submittedEmployees.length === 0 ? (
+            <p className="rounded-xl border border-border bg-card p-4 text-sm text-muted">
+              まだ提出済みの従業員はいません。
+            </p>
+          ) : (
+            <ul className="divide-y divide-border overflow-hidden rounded-2xl border border-border bg-card">
+              {submittedEmployees.map((e) => {
+                const reportId = reportIdByEmployee.get(e.id);
+                const isConfirmed = reportByEmployee.get(e.id) === "confirmed";
+                return (
+                  <li key={e.id}>
+                    <Link
+                      href={reportId ? `/admin/reports/${reportId}` : "/admin/reports"}
+                      className="flex items-center justify-between px-4 py-3 hover:bg-gray-50"
+                    >
+                      <span className="text-sm font-medium text-foreground">
+                        {e.full_name || "(未設定)"}
+                      </span>
+                      <span
+                        className={`rounded-full px-2 py-1 text-xs font-medium ${
+                          isConfirmed ? "bg-green-50 text-success" : "bg-blue-50 text-blue-700"
+                        }`}
+                      >
+                        {isConfirmed ? "確認済み" : "提出済み"}
+                      </span>
+                    </Link>
+                  </li>
+                );
+              })}
             </ul>
           )}
         </div>

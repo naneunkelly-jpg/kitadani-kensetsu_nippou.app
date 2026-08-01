@@ -91,15 +91,27 @@ export async function updateToolAction(
 export async function deleteToolAction(id: string): Promise<FormState> {
   const { supabase } = await requireAdmin();
 
-  const { count } = await supabase
+  // 現在誰かが持ち出し中（未返却）の工具は削除できないようにする。
+  const { count: openCount } = await supabase
     .from("tool_checkouts")
     .select("id", { count: "exact", head: true })
+    .eq("tool_id", id)
+    .is("returned_at", null);
+
+  if ((openCount ?? 0) > 0) {
+    return {
+      error: "現在持ち出し中の工具は削除できません。返却されてから削除してください。",
+    };
+  }
+
+  // 過去の持ち出し履歴（返却済み）はFK制約があるため、工具本体より先に削除する。
+  const { error: checkoutDeleteError } = await supabase
+    .from("tool_checkouts")
+    .delete()
     .eq("tool_id", id);
 
-  if ((count ?? 0) > 0) {
-    return {
-      error: "持ち出し履歴がある工具は削除できません。使わなくなった場合は編集画面から「無効」にしてください。",
-    };
+  if (checkoutDeleteError) {
+    return { error: `削除に失敗しました: ${checkoutDeleteError.message}` };
   }
 
   const { error } = await supabase.from("tools").delete().eq("id", id);

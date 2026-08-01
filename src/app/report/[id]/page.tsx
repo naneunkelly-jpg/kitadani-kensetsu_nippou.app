@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { AppHeader } from "@/components/app-header";
+import { DeleteReportButton } from "@/components/delete-report-button";
 import { REPORT_STATUS_LABELS } from "@/lib/report-status";
 
 export default async function ReportDetailPage({
@@ -84,12 +85,15 @@ export default async function ReportDetailPage({
             </span>
           </div>
           {report.status !== "confirmed" && (
-            <Link
-              href={`/report/new?date=${report.report_date}`}
-              className="rounded-lg border border-border px-3 py-2 text-sm font-medium text-accent"
-            >
-              編集する
-            </Link>
+            <div className="flex gap-2">
+              <Link
+                href={`/report/new?date=${report.report_date}`}
+                className="rounded-lg border border-border px-3 py-2 text-sm font-medium text-accent"
+              >
+                編集する
+              </Link>
+              <DeleteReportButton reportId={report.id} redirectTo="/report" />
+            </div>
           )}
         </div>
 

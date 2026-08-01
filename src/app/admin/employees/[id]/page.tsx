@@ -57,11 +57,10 @@ export default async function EmployeeDetailPage({
               一覧に戻る
             </Link>
           </div>
-          <p className="text-sm text-muted">社員コード: {employee.employee_code}</p>
-
           <EmployeeEditForm
             employeeId={employee.id}
             fullName={employee.full_name}
+            employeeCode={employee.employee_code ?? ""}
             isActive={employee.is_active}
             isAdmin={employee.role === "admin"}
           />

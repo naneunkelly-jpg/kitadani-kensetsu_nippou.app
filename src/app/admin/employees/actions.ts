@@ -68,6 +68,11 @@ export async function createEmployeeAction(
 const updateEmployeeSchema = z.object({
   employeeId: z.string().uuid(),
   fullName: z.string().trim().min(1, "氏名を入力してください。"),
+  employeeCode: z
+    .string()
+    .trim()
+    .min(1, "社員コードを入力してください。")
+    .regex(/^[a-zA-Z0-9_-]+$/, "社員コードは半角英数字で入力してください。"),
   isActive: z.union([z.literal("on"), z.undefined()]),
   isAdmin: z.union([z.literal("on"), z.undefined()]),
 });
@@ -81,6 +86,7 @@ export async function updateEmployeeAction(
   const parsed = updateEmployeeSchema.safeParse({
     employeeId: formData.get("employeeId"),
     fullName: formData.get("fullName"),
+    employeeCode: formData.get("employeeCode"),
     isActive: formData.get("isActive") ?? undefined,
     isAdmin: formData.get("isAdmin") ?? undefined,
   });
@@ -89,12 +95,34 @@ export async function updateEmployeeAction(
     return { error: parsed.error.issues[0]?.message ?? "入力内容を確認してください。" };
   }
 
-  const { employeeId, fullName, isActive, isAdmin } = parsed.data;
+  const { employeeId, fullName, employeeCode, isActive, isAdmin } = parsed.data;
+
+  const { data: current } = await supabase
+    .from("profiles")
+    .select("employee_code")
+    .eq("id", employeeId)
+    .single();
+
+  // 社員コードを変更した場合、ログインに使うSupabase Auth側のメールアドレスも
+  // 揃えないとログインできなくなるため、Admin APIで一緒に更新する。
+  if (current && current.employee_code !== employeeCode) {
+    const adminClient = createAdminClient();
+    const { error: authError } = await adminClient.auth.admin.updateUserById(employeeId, {
+      email: employeeCodeToEmail(employeeCode),
+    });
+    if (authError) {
+      if (authError.message.includes("already been registered") || authError.code === "email_exists") {
+        return { error: "この社員コードは既に使われています。別のコードを入力してください。" };
+      }
+      return { error: `社員コードの更新に失敗しました: ${authError.message}` };
+    }
+  }
 
   const { error } = await supabase
     .from("profiles")
     .update({
       full_name: fullName,
+      employee_code: employeeCode,
       is_active: isActive === "on",
       role: isAdmin === "on" ? "admin" : "employee",
     })
