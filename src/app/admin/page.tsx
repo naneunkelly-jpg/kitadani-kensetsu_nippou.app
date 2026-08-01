@@ -33,9 +33,8 @@ export default async function AdminDashboardPage() {
     await Promise.all([
       supabase
         .from("profiles")
-        .select("id, full_name")
-        .eq("is_active", true)
-        .order("full_name"),
+        .select("id, full_name, employee_code")
+        .eq("is_active", true),
       supabase
         .from("employee_schedules")
         .select("employee_id, status")
@@ -56,7 +55,20 @@ export default async function AdminDashboardPage() {
     (todayReports ?? []).map((r) => [r.employee_id, r.id])
   );
 
-  const scheduledEmployees = (employees ?? []).filter((e) =>
+  // 社員コードを数字として昇順に並べる（0001, 0002, ... 1000, 1001 の順になるよう、
+  // 登録順ではなく数値として比較する。数字に変換できないコードは末尾に回す）。
+  const sortedEmployees = (employees ?? []).slice().sort((a, b) => {
+    const aNum = Number(a.employee_code);
+    const bNum = Number(b.employee_code);
+    const aIsNum = !!a.employee_code && !Number.isNaN(aNum);
+    const bIsNum = !!b.employee_code && !Number.isNaN(bNum);
+    if (aIsNum && bIsNum) return aNum - bNum;
+    if (aIsNum) return -1;
+    if (bIsNum) return 1;
+    return (a.employee_code ?? "").localeCompare(b.employee_code ?? "");
+  });
+
+  const scheduledEmployees = sortedEmployees.filter((e) =>
     isWorkingStatus(effectiveScheduleStatus(todayStr, overrideByEmployee.get(e.id)))
   );
   const dayOffCount = (employees ?? []).length - scheduledEmployees.length;
