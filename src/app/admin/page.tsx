@@ -131,6 +131,14 @@ export default async function AdminDashboardPage() {
           </Link>
         </div>
 
+        <Link
+          href="/leave"
+          className="block rounded-2xl border border-border bg-card p-4 text-center active:bg-gray-50"
+        >
+          <p className="text-sm text-muted">欠勤予定</p>
+          <p className="mt-1 font-semibold text-foreground">入力する</p>
+        </Link>
+
         <h1 className="text-xl font-bold text-foreground">本日の状況</h1>
 
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
