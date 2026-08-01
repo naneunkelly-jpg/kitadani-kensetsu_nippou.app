@@ -32,14 +32,31 @@ export default async function HolidaysPage({
     .eq("id", user!.id)
     .single();
 
-  const { data: holidays } = await supabase
-    .from("company_holidays")
-    .select("id, holiday_date, name, note")
-    .gte("holiday_date", start)
-    .lte("holiday_date", end)
-    .order("holiday_date");
+  const [{ data: holidays }, { data: employeeLeaves }] = await Promise.all([
+    supabase
+      .from("company_holidays")
+      .select("id, holiday_date, name, note")
+      .gte("holiday_date", start)
+      .lte("holiday_date", end)
+      .order("holiday_date"),
+    supabase
+      .from("employee_schedules")
+      .select("schedule_date, profiles(full_name)")
+      .eq("status", "day_off")
+      .gte("schedule_date", start)
+      .lte("schedule_date", end),
+  ]);
 
   const holidayMap = new Map((holidays ?? []).map((h) => [h.holiday_date, h]));
+
+  const leavesByDate = new Map<string, string[]>();
+  for (const l of employeeLeaves ?? []) {
+    const p = Array.isArray(l.profiles) ? l.profiles[0] : l.profiles;
+    const name = p?.full_name || "(未設定)";
+    const list = leavesByDate.get(l.schedule_date) ?? [];
+    list.push(name);
+    leavesByDate.set(l.schedule_date, list);
+  }
 
   const firstWeekday = dayOfWeekUTC(start);
   const lastDay = Number(end.slice(8, 10));
@@ -88,6 +105,7 @@ export default async function HolidaysPage({
             {cells.map((dateStr, i) => {
               if (!dateStr) return <div key={i} />;
               const holiday = holidayMap.get(dateStr);
+              const leaves = leavesByDate.get(dateStr) ?? [];
               const isToday = dateStr === todayStr;
               const dayNum = Number(dateStr.slice(8, 10));
               return (
@@ -105,6 +123,11 @@ export default async function HolidaysPage({
                       {holiday.name}
                     </p>
                   )}
+                  {leaves.map((name, idx) => (
+                    <p key={idx} className="mt-1 truncate font-medium text-blue-700">
+                      {name} 休
+                    </p>
+                  ))}
                 </div>
               );
             })}

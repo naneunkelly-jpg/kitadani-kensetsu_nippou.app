@@ -114,6 +114,14 @@ export default async function HomePage() {
             <p className="text-sm text-muted">過去の日報</p>
             <p className="mt-1 text-xl font-bold text-foreground">見る</p>
           </Link>
+
+          <Link
+            href="/leave"
+            className="rounded-2xl border border-border bg-card p-5 active:bg-gray-50"
+          >
+            <p className="text-sm text-muted">欠勤予定</p>
+            <p className="mt-1 text-xl font-bold text-foreground">入力する</p>
+          </Link>
         </div>
 
         <PushSubscribeToggle />
