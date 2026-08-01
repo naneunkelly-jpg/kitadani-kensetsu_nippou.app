@@ -1,8 +1,16 @@
 // 北谷建設 日報管理: 日報未提出者へのWeb Push通知
 //
-// pg_cron から1日2回呼び出される。
-// - mode: "evening" … 18:00（JST）。今日の日報がまだ未提出の人へのリマインド。
-// - mode: "morning" … 翌6:00（JST）。前日の日報が未提出のまま日をまたいだ人への通知。
+// pg_cron から毎分呼び出される。実際に通知を送るかどうかは
+// public.notification_schedule テーブルに保存された時刻（JST, "HH:MM"）と
+// 現在時刻が一致するかで判断する（時刻自体は管理者ページから変更できる）。
+// 一致していない分は何もせず早期リターンする（コストはごくわずか）。
+//
+// - 設定時刻の evening_reminder_time … 今日の日報がまだ未提出の人へのリマインド。
+// - 設定時刻の morning_reminder_time … 前日の日報が未提出のまま日をまたいだ人への通知。
+//
+// 同じ分に複数回叩かれても二重送信しないよう、送信したら
+// last_evening_sent_date / last_morning_sent_date（JSTの日付）を更新し、
+// 既に今日分を送っていればスキップする。
 //
 // 「出勤予定なのに未提出」の判定は public.get_pending_report_employees(target_date)
 // というSQL関数（src/lib/schedule.ts の effectiveScheduleStatus と同じロジック）に
@@ -19,17 +27,22 @@ const VAPID_SUBJECT = Deno.env.get("VAPID_SUBJECT") ?? "mailto:admin@kitadani-ke
 
 webpush.setVapidDetails(VAPID_SUBJECT, VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY);
 
-function getJstDateString(date: Date): string {
+function getJstParts(date: Date): { dateStr: string; hm: string } {
   const parts = new Intl.DateTimeFormat("en-CA", {
     timeZone: "Asia/Tokyo",
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
   }).formatToParts(date);
   const y = parts.find((p) => p.type === "year")!.value;
   const m = parts.find((p) => p.type === "month")!.value;
   const d = parts.find((p) => p.type === "day")!.value;
-  return `${y}-${m}-${d}`;
+  const h = parts.find((p) => p.type === "hour")!.value;
+  const min = parts.find((p) => p.type === "minute")!.value;
+  return { dateStr: `${y}-${m}-${d}`, hm: `${h}:${min}` };
 }
 
 function addDays(dateStr: string, days: number): string {
@@ -47,38 +60,24 @@ type PushSubscriptionRow = {
   auth: string;
 };
 
-Deno.serve(async (req) => {
-  let mode: "evening" | "morning" = "evening";
-  try {
-    const body = await req.json();
-    if (body?.mode === "morning") mode = "morning";
-  } catch {
-    // ボディが無い/不正な場合はeveningとして扱う
-  }
-
-  const todayJst = getJstDateString(new Date());
+async function sendReminders(
+  supabase: ReturnType<typeof createClient>,
+  mode: "evening" | "morning",
+  todayJst: string
+) {
   const targetDate = mode === "morning" ? addDays(todayJst, -1) : todayJst;
-
-  const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
 
   const { data: employees, error } = await supabase.rpc("get_pending_report_employees", {
     target_date: targetDate,
   });
 
   if (error) {
-    return new Response(JSON.stringify({ error: error.message }), {
-      status: 500,
-      headers: { "Content-Type": "application/json" },
-    });
+    return { error: error.message };
   }
 
   const pending = (employees ?? []) as PendingEmployee[];
-
   if (pending.length === 0) {
-    return new Response(JSON.stringify({ sent: 0, targetDate, mode }), {
-      status: 200,
-      headers: { "Content-Type": "application/json" },
-    });
+    return { sent: 0, targets: 0, targetDate };
   }
 
   const employeeIds = pending.map((e) => e.employee_id);
@@ -101,10 +100,7 @@ Deno.serve(async (req) => {
   for (const sub of (subscriptions ?? []) as PushSubscriptionRow[]) {
     try {
       await webpush.sendNotification(
-        {
-          endpoint: sub.endpoint,
-          keys: { p256dh: sub.p256dh, auth: sub.auth },
-        },
+        { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } },
         JSON.stringify({ title, body, url })
       );
       sent++;
@@ -120,8 +116,46 @@ Deno.serve(async (req) => {
     await supabase.from("push_subscriptions").delete().in("id", staleIds);
   }
 
-  return new Response(
-    JSON.stringify({ sent, targets: pending.length, targetDate, mode }),
-    { status: 200, headers: { "Content-Type": "application/json" } }
-  );
+  return { sent, targets: pending.length, targetDate };
+}
+
+Deno.serve(async () => {
+  const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
+  const { dateStr: todayJst, hm: nowHm } = getJstParts(new Date());
+
+  const { data: schedule, error: scheduleError } = await supabase
+    .from("notification_schedule")
+    .select("evening_reminder_time, morning_reminder_time, last_evening_sent_date, last_morning_sent_date")
+    .eq("id", true)
+    .single();
+
+  if (scheduleError || !schedule) {
+    return new Response(JSON.stringify({ error: scheduleError?.message ?? "設定が見つかりません" }), {
+      status: 500,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
+  const results: Record<string, unknown> = {};
+
+  if (schedule.evening_reminder_time === nowHm && schedule.last_evening_sent_date !== todayJst) {
+    results.evening = await sendReminders(supabase, "evening", todayJst);
+    await supabase
+      .from("notification_schedule")
+      .update({ last_evening_sent_date: todayJst })
+      .eq("id", true);
+  }
+
+  if (schedule.morning_reminder_time === nowHm && schedule.last_morning_sent_date !== todayJst) {
+    results.morning = await sendReminders(supabase, "morning", todayJst);
+    await supabase
+      .from("notification_schedule")
+      .update({ last_morning_sent_date: todayJst })
+      .eq("id", true);
+  }
+
+  return new Response(JSON.stringify({ now: nowHm, today: todayJst, ...results }), {
+    status: 200,
+    headers: { "Content-Type": "application/json" },
+  });
 });

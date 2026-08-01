@@ -10,6 +10,7 @@ const NAV_ITEMS = [
   { href: "/admin/tools", label: "工具管理" },
   { href: "/admin/materials", label: "材料管理" },
   { href: "/admin/holidays", label: "会社カレンダー" },
+  { href: "/admin/settings", label: "通知設定" },
 ];
 
 export function AdminNav() {
