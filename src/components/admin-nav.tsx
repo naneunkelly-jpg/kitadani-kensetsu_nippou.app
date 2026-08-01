@@ -2,6 +2,7 @@ import Link from "next/link";
 
 const NAV_ITEMS = [
   { href: "/admin", label: "ダッシュボード" },
+  { href: "/admin/self", label: "日報入力" },
   { href: "/admin/reports", label: "日報一覧" },
   { href: "/admin/summary", label: "月次集計" },
   { href: "/admin/employees", label: "従業員管理" },

@@ -29,7 +29,7 @@ export default async function AdminDashboardPage() {
     timeZone: "Asia/Tokyo",
   });
 
-  const [{ data: employees }, { data: scheduleOverrides }, { data: todayReports }, { data: myReport }, { count: openToolCount }] =
+  const [{ data: employees }, { data: scheduleOverrides }, { data: todayReports }] =
     await Promise.all([
       supabase
         .from("profiles")
@@ -44,17 +44,6 @@ export default async function AdminDashboardPage() {
         .from("daily_reports")
         .select("id, employee_id, status")
         .eq("report_date", todayStr),
-      supabase
-        .from("daily_reports")
-        .select("status")
-        .eq("employee_id", user.id)
-        .eq("report_date", todayStr)
-        .maybeSingle(),
-      supabase
-        .from("tool_checkouts")
-        .select("id", { count: "exact", head: true })
-        .eq("employee_id", user.id)
-        .is("returned_at", null),
     ]);
 
   const overrideByEmployee = new Map(
@@ -105,46 +94,6 @@ export default async function AdminDashboardPage() {
       <AdminNav />
       <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-6 space-y-6">
         <p className="text-sm text-muted">{today}</p>
-
-        <Link
-          href="/report/new"
-          className="block rounded-2xl bg-accent px-5 py-4 text-center text-base font-bold text-accent-foreground shadow-sm active:opacity-90"
-        >
-          {myReport ? "今日の日報を編集する" : "今日の日報を書く"}
-        </Link>
-
-        <Link
-          href="/report/select-date"
-          className="block text-center text-sm text-accent underline-offset-2 hover:underline"
-        >
-          過去の日報を提出する
-        </Link>
-
-        <div className="grid grid-cols-2 gap-4">
-          <Link
-            href="/tools"
-            className="rounded-2xl border-2 border-accent bg-accent/5 px-4 py-4 text-center active:bg-accent/10"
-          >
-            <p className="font-semibold text-accent">工具の持ち出し・返却</p>
-            <p className="mt-1 text-sm text-muted">持ち出し中 {openToolCount ?? 0}件</p>
-          </Link>
-
-          <Link
-            href="/materials"
-            className="rounded-2xl border-2 border-accent bg-accent/5 px-4 py-4 text-center active:bg-accent/10"
-          >
-            <p className="font-semibold text-accent">材料の使用記録</p>
-            <p className="mt-1 text-sm text-muted">記録する</p>
-          </Link>
-        </div>
-
-        <Link
-          href="/leave"
-          className="block rounded-2xl border border-border bg-card p-4 text-center active:bg-gray-50"
-        >
-          <p className="text-sm text-muted">欠勤予定</p>
-          <p className="mt-1 font-semibold text-foreground">入力する</p>
-        </Link>
 
         <h1 className="text-xl font-bold text-foreground">本日の状況</h1>
 
@@ -234,13 +183,6 @@ export default async function AdminDashboardPage() {
           </Link>
           から確認できます。
         </p>
-
-        <Link
-          href="/account/password"
-          className="block text-center text-sm text-accent underline-offset-2 hover:underline"
-        >
-          パスワードを変更する
-        </Link>
       </main>
     </>
   );

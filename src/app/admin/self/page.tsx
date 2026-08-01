@@ -1,9 +1,10 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { AppHeader } from "@/components/app-header";
+import { AdminNav } from "@/components/admin-nav";
 import { SelfServicePanel } from "@/components/self-service-panel";
 
-export default async function HomePage() {
+export default async function AdminSelfPage() {
   const supabase = await createClient();
   const {
     data: { user },
@@ -13,19 +14,11 @@ export default async function HomePage() {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("full_name, role")
+    .select("full_name")
     .eq("id", user.id)
     .single();
 
-  // PWAとしてホーム画面から起動した場合、manifestのstart_urlにより
-  // ログイン画面を経由せず直接ここに来ることがあるため、
-  // 管理者の場合はここで管理者ダッシュボードへ振り分ける。
-  if (profile?.role === "admin") {
-    redirect("/admin");
-  }
-
-  const today = new Date();
-  const dateLabel = today.toLocaleDateString("ja-JP", {
+  const today = new Date().toLocaleDateString("ja-JP", {
     year: "numeric",
     month: "long",
     day: "numeric",
@@ -35,13 +28,11 @@ export default async function HomePage() {
 
   return (
     <>
-      <AppHeader
-        userName={profile?.full_name ?? "従業員"}
-        roleLabel={profile?.role === "admin" ? "管理者" : "従業員"}
-      />
+      <AppHeader userName={profile?.full_name ?? "管理者"} roleLabel="管理者" />
+      <AdminNav />
       <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-6">
         <div className="mx-auto w-full max-w-2xl space-y-4">
-          <p className="text-sm text-muted">{dateLabel}</p>
+          <p className="text-sm text-muted">{today}</p>
           <SelfServicePanel userId={user.id} />
         </div>
       </main>
