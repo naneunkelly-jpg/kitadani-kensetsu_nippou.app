@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { AppHeader } from "@/components/app-header";
 import { AdminNav } from "@/components/admin-nav";
 import { DateSelect } from "@/components/date-select";
-import { REPORT_STATUS_LABELS } from "@/lib/report-status";
+import { ReportsTable } from "./reports-table";
 
 type SearchParams = {
   dateFrom?: string;
@@ -180,70 +180,7 @@ export default async function AdminReportsPage({
           </div>
         </form>
 
-        <div className="overflow-x-auto rounded-2xl border border-border bg-card">
-          <table className="w-full min-w-[720px] text-sm">
-            <thead className="bg-gray-50 text-left text-xs text-muted">
-              <tr>
-                <th className="whitespace-nowrap px-4 py-3">日付</th>
-                <th className="whitespace-nowrap px-4 py-3">従業員</th>
-                <th className="whitespace-nowrap px-4 py-3">元請け先</th>
-                <th className="whitespace-nowrap px-4 py-3">現場</th>
-                <th className="whitespace-nowrap px-4 py-3">作業内容</th>
-                <th className="whitespace-nowrap px-4 py-3">提出時間</th>
-                <th className="whitespace-nowrap px-4 py-3">ステータス</th>
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((row, i) => (
-                <tr key={i} className="border-t border-border">
-                  <td className="whitespace-nowrap px-4 py-3">
-                    <Link
-                      href={`/admin/reports/${row.reportId}`}
-                      className="text-foreground underline-offset-2 hover:underline"
-                    >
-                      {row.reportDate}
-                    </Link>
-                  </td>
-                  <td className="whitespace-nowrap px-4 py-3">{row.employeeName}</td>
-                  <td className="whitespace-nowrap px-4 py-3">{row.clientName}</td>
-                  <td className="whitespace-nowrap px-4 py-3">{row.worksiteName}</td>
-                  <td className="max-w-xs truncate px-4 py-3 text-muted">
-                    {row.workDetail}
-                  </td>
-                  <td className="whitespace-nowrap px-4 py-3 text-muted">
-                    {row.submittedAt
-                      ? new Date(row.submittedAt).toLocaleTimeString("ja-JP", {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                          timeZone: "Asia/Tokyo",
-                        })
-                      : "―"}
-                  </td>
-                  <td className="whitespace-nowrap px-4 py-3">
-                    <span
-                      className={`whitespace-nowrap rounded-full px-2 py-1 text-xs font-medium ${
-                        row.status === "confirmed"
-                          ? "bg-green-50 text-success"
-                          : row.status === "submitted"
-                            ? "bg-blue-50 text-blue-700"
-                            : "bg-gray-100 text-muted"
-                      }`}
-                    >
-                      {REPORT_STATUS_LABELS[row.status] ?? row.status}
-                    </span>
-                  </td>
-                </tr>
-              ))}
-              {rows.length === 0 && (
-                <tr>
-                  <td colSpan={7} className="px-4 py-6 text-center text-muted">
-                    該当する日報がありません。
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+        <ReportsTable rows={rows} />
       </main>
     </>
   );
