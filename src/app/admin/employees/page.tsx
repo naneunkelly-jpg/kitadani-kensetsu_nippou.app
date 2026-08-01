@@ -15,10 +15,23 @@ export default async function EmployeesPage() {
     .eq("id", user!.id)
     .single();
 
-  const { data: employees } = await supabase
+  const { data: employeesRaw } = await supabase
     .from("profiles")
-    .select("id, full_name, employee_code, role, is_active")
-    .order("created_at", { ascending: true });
+    .select("id, full_name, employee_code, role, is_active");
+
+  // 社員コードを数字として昇順に並べる（0001, 0002, ... 1000, 1001 の順になるよう、
+  // 登録順ではなく数値として比較する。文字列としての比較だと桁数が違う場合に
+  // 崩れるため）。数字に変換できないコードは末尾に回す。
+  const employees = (employeesRaw ?? []).slice().sort((a, b) => {
+    const aNum = Number(a.employee_code);
+    const bNum = Number(b.employee_code);
+    const aIsNum = !!a.employee_code && !Number.isNaN(aNum);
+    const bIsNum = !!b.employee_code && !Number.isNaN(bNum);
+    if (aIsNum && bIsNum) return aNum - bNum;
+    if (aIsNum) return -1;
+    if (bIsNum) return 1;
+    return (a.employee_code ?? "").localeCompare(b.employee_code ?? "");
+  });
 
   return (
     <>
