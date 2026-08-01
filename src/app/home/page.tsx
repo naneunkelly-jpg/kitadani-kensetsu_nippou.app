@@ -14,11 +14,23 @@ export default async function HomePage() {
 
   if (!user) redirect("/login");
 
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("full_name, role")
+    .eq("id", user.id)
+    .single();
+
+  // PWAとしてホーム画面から起動した場合、manifestのstart_urlにより
+  // ログイン画面を経由せず直接ここに来ることがあるため、
+  // 管理者の場合はここで管理者ダッシュボードへ振り分ける。
+  if (profile?.role === "admin") {
+    redirect("/admin");
+  }
+
   const todayStr = getTodayJstString();
 
-  const [{ data: profile }, { data: todayReport }, { count: openToolCount }] =
+  const [{ data: todayReport }, { count: openToolCount }] =
     await Promise.all([
-      supabase.from("profiles").select("full_name, role").eq("id", user.id).single(),
       supabase
         .from("daily_reports")
         .select("status")

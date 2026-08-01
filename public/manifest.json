@@ -2,7 +2,7 @@
   "name": "北谷建設 日報管理",
   "short_name": "日報管理",
   "description": "北谷建設 日報・現場管理システム",
-  "start_url": "/home",
+  "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "background_color": "#ffffff",
