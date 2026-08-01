@@ -96,6 +96,12 @@ export default async function AdminReportDetailPage({
             {report.status === "submitted" && (
               <ConfirmReportButton reportId={report.id} />
             )}
+            <Link
+              href={`/admin/reports/${report.id}/edit`}
+              className="rounded-lg border border-border px-3 py-2 text-sm font-medium text-accent"
+            >
+              編集する
+            </Link>
             <DeleteReportButton reportId={report.id} redirectTo="/admin/reports" />
           </div>
         </div>

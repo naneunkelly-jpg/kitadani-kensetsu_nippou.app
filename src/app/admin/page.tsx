@@ -113,6 +113,13 @@ export default async function AdminDashboardPage() {
           {myReport ? "今日の日報を編集する" : "今日の日報を書く"}
         </Link>
 
+        <Link
+          href="/report/select-date"
+          className="block text-center text-sm text-accent underline-offset-2 hover:underline"
+        >
+          過去の日報を提出する
+        </Link>
+
         <div className="grid grid-cols-2 gap-4">
           <Link
             href="/tools"
