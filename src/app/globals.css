@@ -38,9 +38,8 @@ body {
 
 input,
 select,
-textarea,
-button {
-  font-size: 16px; /* iPhone Safariでの自動ズーム防止 */
+textarea {
+  font-size: 16px; /* iPhone Safariでの自動ズーム防止（ボタンはズームの対象にならないため含めない） */
 }
 
 /* 数値入力はキーボードでの入力のみとし、増減の矢印（スピナー）は表示しない */
@@ -52,4 +51,17 @@ input[type="number"]::-webkit-outer-spin-button {
 
 input[type="number"] {
   appearance: textfield;
+}
+
+/* ボタン・リンクのマウスオーバー時のフィードバック（スマホのactive:と同様の見た目をPCでも出す） */
+@media (hover: hover) {
+  a.border.border-border:hover,
+  button.border.border-border:not(:disabled):hover {
+    background-color: #f9fafb; /* gray-50 */
+  }
+
+  a.bg-accent:hover,
+  button.bg-accent:not(:disabled):hover {
+    opacity: 0.9;
+  }
 }
