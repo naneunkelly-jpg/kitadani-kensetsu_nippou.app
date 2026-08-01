@@ -29,7 +29,7 @@ export default async function AdminDashboardPage() {
     timeZone: "Asia/Tokyo",
   });
 
-  const [{ data: employees }, { data: scheduleOverrides }, { data: todayReports }, { data: myReport }] =
+  const [{ data: employees }, { data: scheduleOverrides }, { data: todayReports }, { data: myReport }, { count: openToolCount }] =
     await Promise.all([
       supabase
         .from("profiles")
@@ -50,6 +50,11 @@ export default async function AdminDashboardPage() {
         .eq("employee_id", user.id)
         .eq("report_date", todayStr)
         .maybeSingle(),
+      supabase
+        .from("tool_checkouts")
+        .select("id", { count: "exact", head: true })
+        .eq("employee_id", user.id)
+        .is("returned_at", null),
     ]);
 
   const overrideByEmployee = new Map(
@@ -107,6 +112,24 @@ export default async function AdminDashboardPage() {
         >
           {myReport ? "今日の日報を編集する" : "今日の日報を書く"}
         </Link>
+
+        <div className="grid grid-cols-2 gap-4">
+          <Link
+            href="/tools"
+            className="rounded-2xl border-2 border-accent bg-accent/5 px-4 py-4 text-center active:bg-accent/10"
+          >
+            <p className="font-semibold text-accent">工具の持ち出し・返却</p>
+            <p className="mt-1 text-sm text-muted">持ち出し中 {openToolCount ?? 0}件</p>
+          </Link>
+
+          <Link
+            href="/materials"
+            className="rounded-2xl border-2 border-accent bg-accent/5 px-4 py-4 text-center active:bg-accent/10"
+          >
+            <p className="font-semibold text-accent">材料の使用記録</p>
+            <p className="mt-1 text-sm text-muted">記録する</p>
+          </Link>
+        </div>
 
         <h1 className="text-xl font-bold text-foreground">本日の状況</h1>
 

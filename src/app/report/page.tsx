@@ -52,7 +52,7 @@ export default async function ReportHistoryPage() {
       <AppHeader
         userName={profile?.full_name ?? "従業員"}
         roleLabel={profile?.role === "admin" ? "管理者" : "従業員"}
-        backHref="/home"
+        backHref={profile?.role === "admin" ? "/admin" : "/home"}
       />
       <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-6">
         <div className="mx-auto w-full max-w-2xl space-y-3">

@@ -73,7 +73,7 @@ export default async function NewReportPage({
       <AppHeader
         userName={profile?.full_name ?? "従業員"}
         roleLabel={profile?.role === "admin" ? "管理者" : "従業員"}
-        backHref="/home"
+        backHref={profile?.role === "admin" ? "/admin" : "/home"}
       />
       <ReportForm
         employeeId={user.id}
