@@ -42,7 +42,7 @@ export default async function HolidaysPage({
       .order("holiday_date"),
     supabase
       .from("employee_schedules")
-      .select("schedule_date, status, profiles(full_name)")
+      .select("schedule_date, status, profiles!employee_schedules_employee_id_fkey(full_name)")
       .in("status", ["day_off", "day_off_am", "day_off_pm"])
       .gte("schedule_date", start)
       .lte("schedule_date", end),
