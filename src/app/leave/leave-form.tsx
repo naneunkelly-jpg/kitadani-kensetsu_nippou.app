@@ -44,6 +44,20 @@ export function LeaveForm() {
         </div>
       </div>
 
+      <div>
+        <label className="mb-1 block text-sm font-medium text-foreground">
+          休みの理由
+        </label>
+        <textarea
+          name="reason"
+          required
+          maxLength={200}
+          rows={2}
+          placeholder="例：通院のため"
+          className="w-full rounded-xl border border-border bg-card px-3 py-2 text-sm text-foreground"
+        />
+      </div>
+
       {state?.error && (
         <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-danger">{state.error}</p>
       )}

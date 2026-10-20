@@ -12,6 +12,11 @@ export type LeaveActionState = {
 
 const dateSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "日付を入力してください。");
 const periodSchema = z.enum(["day_off", "day_off_am", "day_off_pm"]);
+const reasonSchema = z
+  .string()
+  .trim()
+  .min(1, "休みの理由を入力してください。")
+  .max(200, "休みの理由は200文字以内で入力してください。");
 
 export async function registerLeaveAction(
   _prevState: LeaveActionState,
@@ -34,9 +39,14 @@ export async function registerLeaveAction(
   if (!parsedPeriod.success) {
     return { error: "休みの種類を確認してください。" };
   }
+  const parsedReason = reasonSchema.safeParse(formData.get("reason"));
+  if (!parsedReason.success) {
+    return { error: parsedReason.error.issues[0]?.message ?? "休みの理由を入力してください。" };
+  }
 
   const date = parsedDate.data;
   const status = parsedPeriod.data;
+  const reason = parsedReason.data;
   const today = getTodayJstString();
   if (date < today) {
     return { error: "過去の日付は登録できません。" };
@@ -72,6 +82,7 @@ export async function registerLeaveAction(
       employee_id: user.id,
       schedule_date: date,
       status,
+      reason,
       updated_by: user.id,
     },
     { onConflict: "employee_id,schedule_date" }

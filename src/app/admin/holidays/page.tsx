@@ -7,8 +7,7 @@ import { SCHEDULE_STATUS_LABELS, type ScheduleStatus } from "@/lib/schedule";
 import { SingleHolidayAddForm } from "./single-add-form";
 import { RangeHolidayAddForm } from "./range-add-form";
 import { DeleteHolidayButton } from "./delete-button";
-
-const WEEKDAY_LABELS = ["日", "月", "火", "水", "木", "金", "土"];
+import { HolidayCalendarGrid, type CalendarDay } from "./calendar-grid";
 
 export default async function HolidaysPage({
   searchParams,
@@ -42,21 +41,38 @@ export default async function HolidaysPage({
       .order("holiday_date"),
     supabase
       .from("employee_schedules")
-      .select("schedule_date, status, profiles!employee_schedules_employee_id_fkey(full_name)")
+      .select(
+        "schedule_date, status, reason, profiles!employee_schedules_employee_id_fkey(full_name)"
+      )
       .in("status", ["day_off", "day_off_am", "day_off_pm"])
       .gte("schedule_date", start)
-      .lte("schedule_date", end),
+      .lte("schedule_date", end)
+      .order("schedule_date"),
   ]);
 
   const holidayMap = new Map((holidays ?? []).map((h) => [h.holiday_date, h]));
 
-  const leavesByDate = new Map<string, { name: string; status: ScheduleStatus }[]>();
+  type EmployeeLeave = {
+    date: string;
+    name: string;
+    status: ScheduleStatus;
+    reason: string | null;
+  };
+
+  const leavesByDate = new Map<
+    string,
+    { name: string; status: ScheduleStatus; reason: string | null }[]
+  >();
+  const leaveList: EmployeeLeave[] = [];
   for (const l of employeeLeaves ?? []) {
     const p = Array.isArray(l.profiles) ? l.profiles[0] : l.profiles;
     const name = p?.full_name || "(未設定)";
+    const reason = l.reason as string | null;
+    const status = l.status as ScheduleStatus;
     const list = leavesByDate.get(l.schedule_date) ?? [];
-    list.push({ name, status: l.status as ScheduleStatus });
+    list.push({ name, status, reason });
     leavesByDate.set(l.schedule_date, list);
+    leaveList.push({ date: l.schedule_date, name, status, reason });
   }
 
   const firstWeekday = dayOfWeekUTC(start);
@@ -65,6 +81,18 @@ export default async function HolidaysPage({
     ...Array(firstWeekday).fill(null),
     ...Array.from({ length: lastDay }, (_, i) => `${year}-${pad2(month)}-${pad2(i + 1)}`),
   ];
+
+  const days: (CalendarDay | null)[] = cells.map((dateStr) => {
+    if (!dateStr) return null;
+    const holiday = holidayMap.get(dateStr);
+    return {
+      date: dateStr,
+      dayNum: Number(dateStr.slice(8, 10)),
+      holidayName: holiday?.name ?? null,
+      holidayNote: holiday?.note ?? null,
+      leaves: leavesByDate.get(dateStr) ?? [],
+    };
+  });
 
   const prev = month === 1 ? { year: year - 1, month: 12 } : { year, month: month - 1 };
   const next = month === 12 ? { year: year + 1, month: 1 } : { year, month: month + 1 };
@@ -95,44 +123,35 @@ export default async function HolidaysPage({
             </Link>
           </div>
 
-          <div className="grid grid-cols-7 gap-1 text-center text-xs text-muted">
-            {WEEKDAY_LABELS.map((w) => (
-              <div key={w} className="py-1">
-                {w}
-              </div>
-            ))}
-          </div>
-          <div className="grid grid-cols-7 gap-1">
-            {cells.map((dateStr, i) => {
-              if (!dateStr) return <div key={i} />;
-              const holiday = holidayMap.get(dateStr);
-              const leaves = leavesByDate.get(dateStr) ?? [];
-              const isToday = dateStr === todayStr;
-              const dayNum = Number(dateStr.slice(8, 10));
-              return (
+          <HolidayCalendarGrid days={days} todayStr={todayStr} />
+          <p className="mt-2 text-xs text-muted">日付をタップすると詳細を確認できます。</p>
+        </div>
+
+        <div>
+          <h2 className="mb-2 text-lg font-bold text-foreground">
+            従業員の休み一覧（{year}年{month}月）
+          </h2>
+          {leaveList.length === 0 ? (
+            <p className="rounded-2xl border border-dashed border-border p-6 text-center text-muted">
+              この月に登録された従業員の休みはありません。
+            </p>
+          ) : (
+            <div className="space-y-2">
+              {leaveList.map((l, idx) => (
                 <div
-                  key={dateStr}
-                  className={`min-h-16 rounded-lg border p-1 text-left text-xs ${
-                    holiday
-                      ? "border-accent/30 bg-accent/10"
-                      : "border-border"
-                  } ${isToday ? "ring-2 ring-accent" : ""}`}
+                  key={`${l.date}-${l.name}-${idx}`}
+                  className="rounded-2xl border border-border bg-card p-4"
                 >
-                  <p className="text-muted">{dayNum}</p>
-                  {holiday && (
-                    <p className="mt-1 truncate font-medium text-foreground">
-                      {holiday.name}
-                    </p>
-                  )}
-                  {leaves.map((leave, idx) => (
-                    <p key={idx} className="mt-1 truncate font-medium text-blue-700">
-                      {leave.name} {SCHEDULE_STATUS_LABELS[leave.status]}
-                    </p>
-                  ))}
+                  <p className="font-medium text-foreground">
+                    {l.date}　{l.name}　{SCHEDULE_STATUS_LABELS[l.status]}
+                  </p>
+                  <p className="mt-1 text-sm text-muted">
+                    理由：{l.reason || "（未登録）"}
+                  </p>
                 </div>
-              );
-            })}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -159,6 +178,7 @@ export default async function HolidaysPage({
                 <div className="flex items-center gap-2">
                   <Link
                     href={`/admin/holidays/${h.id}`}
+                    prefetch={false}
                     className="rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-muted"
                   >
                     編集

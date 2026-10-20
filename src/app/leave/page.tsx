@@ -23,7 +23,7 @@ export default async function LeavePage() {
 
   const { data: upcoming } = await supabase
     .from("employee_schedules")
-    .select("schedule_date, status")
+    .select("schedule_date, status, reason")
     .eq("employee_id", user.id)
     .in("status", ["day_off", "day_off_am", "day_off_pm"])
     .gte("schedule_date", todayStr)
@@ -63,6 +63,9 @@ export default async function LeavePage() {
                         {SCHEDULE_STATUS_LABELS[row.status as keyof typeof SCHEDULE_STATUS_LABELS] ??
                           row.status}
                       </p>
+                      {row.reason && (
+                        <p className="mt-1 text-xs text-muted">理由：{row.reason}</p>
+                      )}
                     </div>
                     <CancelLeaveButton date={row.schedule_date} />
                   </div>
