@@ -22,6 +22,7 @@ export function AdminNav() {
           <Link
             key={item.href}
             href={item.href}
+            prefetch={false}
             className="whitespace-nowrap border-b-2 border-transparent px-3 py-3 text-sm font-medium text-muted hover:border-accent hover:text-foreground"
           >
             {item.label}

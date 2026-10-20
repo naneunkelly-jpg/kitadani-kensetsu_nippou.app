@@ -325,7 +325,7 @@ export function ReportForm({
             onClick={() => handleSave(false)}
             className="flex-1 rounded-xl border border-border px-4 py-3 text-base font-semibold text-foreground disabled:opacity-60"
           >
-            下書き保存
+            {isPending ? "保存中..." : "下書き保存"}
           </button>
           <button
             type="button"

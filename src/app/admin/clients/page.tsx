@@ -39,6 +39,7 @@ export default async function ClientsPage() {
             <Link
               key={c.id}
               href={`/admin/clients/${c.id}`}
+              prefetch={false}
               className="flex items-center justify-between rounded-2xl border border-border bg-card p-4 hover:bg-gray-50"
             >
               <div>

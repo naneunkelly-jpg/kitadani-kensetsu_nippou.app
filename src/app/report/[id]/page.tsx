@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { AppHeader } from "@/components/app-header";
+import { BackLink } from "@/components/back-link";
 import { DeleteReportButton } from "@/components/delete-report-button";
 import { REPORT_STATUS_LABELS } from "@/lib/report-status";
 
@@ -139,9 +140,9 @@ export default async function ReportDetailPage({
           )}
         </div>
 
-        <Link href="/report" className="block text-center text-sm text-accent">
+        <BackLink fallbackHref="/report" className="block text-center text-sm text-accent">
           一覧に戻る
-        </Link>
+        </BackLink>
         </div>
       </main>
     </>

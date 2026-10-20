@@ -164,6 +164,7 @@ export default async function AdminDashboardPage() {
                   <li key={e.id}>
                     <Link
                       href={reportId ? `/admin/reports/${reportId}` : "/admin/reports"}
+                      prefetch={false}
                       className="flex items-center justify-between px-4 py-3 hover:bg-gray-50"
                     >
                       <span className="text-sm font-medium text-foreground">
@@ -186,11 +187,11 @@ export default async function AdminDashboardPage() {
 
         <p className="rounded-xl border border-dashed border-border bg-card p-4 text-sm text-muted">
           日報の詳細は
-          <Link href="/admin/reports" className="text-accent underline-offset-2 hover:underline">
+          <Link href="/admin/reports" prefetch={false} className="text-accent underline-offset-2 hover:underline">
             日報一覧
           </Link>
           、月別の集計は
-          <Link href="/admin/summary" className="text-accent underline-offset-2 hover:underline">
+          <Link href="/admin/summary" prefetch={false} className="text-accent underline-offset-2 hover:underline">
             月次集計
           </Link>
           から確認できます。

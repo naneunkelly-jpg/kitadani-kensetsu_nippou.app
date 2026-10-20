@@ -1,8 +1,8 @@
 import { notFound } from "next/navigation";
-import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { AppHeader } from "@/components/app-header";
 import { AdminNav } from "@/components/admin-nav";
+import { BackLink } from "@/components/back-link";
 import { EmployeeEditForm, PasswordResetForm } from "./edit-form";
 import { AdminScheduleToggle } from "./schedule-toggle-admin";
 import { getTodayJstString } from "@/lib/date";
@@ -53,9 +53,9 @@ export default async function EmployeeDetailPage({
         <div className="mx-auto w-full max-w-lg space-y-4">
           <div className="flex items-center justify-between">
             <h1 className="text-xl font-bold text-foreground">従業員編集</h1>
-            <Link href="/admin/employees" className="text-sm text-accent">
+            <BackLink fallbackHref="/admin/employees" className="text-sm text-accent">
               一覧に戻る
-            </Link>
+            </BackLink>
           </div>
           <EmployeeEditForm
             employeeId={employee.id}

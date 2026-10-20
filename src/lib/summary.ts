@@ -30,6 +30,15 @@ export type MonthlySummary = {
   worksites: WorksiteSummaryRow[];
 };
 
+export type EmployeeWorksiteDetailRow = {
+  worksiteId: string;
+  worksiteName: string;
+  clientName: string;
+  attendanceDays: number;
+  workHours: number;
+  personDays: number;
+};
+
 function round1(n: number): number {
   return Math.round(n * 10) / 10;
 }
@@ -135,4 +144,77 @@ export async function getMonthlySummary(
     .sort((a, b) => b.workHours - a.workHours);
 
   return { employees, clients, worksites };
+}
+
+/**
+ * 指定した従業員・年月（JST基準）の現場別の集計を計算する。
+ * 出勤日数は現場ごとに作業記録のあった日報の日数（distinct report_date）、
+ * 工数はwork_entries.work_hoursの合計。
+ */
+export async function getEmployeeWorksiteSummary(
+  employeeId: string,
+  year: number,
+  month: number
+): Promise<{ employeeName: string | null; rows: EmployeeWorksiteDetailRow[] }> {
+  const supabase = await createClient();
+  const { start, end } = monthRange(year, month);
+
+  const [{ data: profile }, { data: reports }] = await Promise.all([
+    supabase.from("profiles").select("full_name").eq("id", employeeId).maybeSingle(),
+    supabase
+      .from("daily_reports")
+      .select("id, report_date")
+      .eq("employee_id", employeeId)
+      .gte("report_date", start)
+      .lte("report_date", end),
+  ]);
+
+  if (!profile) {
+    return { employeeName: null, rows: [] };
+  }
+
+  const reportDateById = new Map((reports ?? []).map((r) => [r.id, r.report_date]));
+  const reportIds = (reports ?? []).map((r) => r.id);
+
+  const { data: entries } =
+    reportIds.length > 0
+      ? await supabase
+          .from("work_entries")
+          .select("daily_report_id, worksite_id, work_hours, clients(name), worksites(name)")
+          .in("daily_report_id", reportIds)
+      : { data: [] };
+
+  const worksiteAgg = new Map<
+    string,
+    { name: string; clientName: string; hours: number; dates: Set<string> }
+  >();
+
+  for (const e of entries ?? []) {
+    const client = Array.isArray(e.clients) ? e.clients[0] : e.clients;
+    const worksite = Array.isArray(e.worksites) ? e.worksites[0] : e.worksites;
+    const reportDate = reportDateById.get(e.daily_report_id) ?? "";
+
+    const agg = worksiteAgg.get(e.worksite_id) ?? {
+      name: worksite?.name ?? "",
+      clientName: client?.name ?? "",
+      hours: 0,
+      dates: new Set<string>(),
+    };
+    agg.hours += e.work_hours;
+    if (reportDate) agg.dates.add(reportDate);
+    worksiteAgg.set(e.worksite_id, agg);
+  }
+
+  const rows: EmployeeWorksiteDetailRow[] = Array.from(worksiteAgg.entries())
+    .map(([id, v]) => ({
+      worksiteId: id,
+      worksiteName: v.name,
+      clientName: v.clientName,
+      attendanceDays: v.dates.size,
+      workHours: round1(v.hours),
+      personDays: round1(v.hours / 8),
+    }))
+    .sort((a, b) => b.workHours - a.workHours);
+
+  return { employeeName: profile.full_name || "(未設定)", rows };
 }

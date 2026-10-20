@@ -103,3 +103,33 @@ export async function updateWorksiteAction(
   revalidatePath(`/admin/worksites/${parsed.data.id}`);
   return {};
 }
+
+export async function deleteWorksiteAction(id: string): Promise<FormState> {
+  const { supabase } = await requireAdmin();
+
+  const [{ count: entryCount }, { count: usageCount }] = await Promise.all([
+    supabase
+      .from("work_entries")
+      .select("id", { count: "exact", head: true })
+      .eq("worksite_id", id),
+    supabase
+      .from("material_usages")
+      .select("id", { count: "exact", head: true })
+      .eq("worksite_id", id),
+  ]);
+
+  if ((entryCount ?? 0) > 0 || (usageCount ?? 0) > 0) {
+    return {
+      error:
+        "この現場は日報または材料使用記録で使用されているため削除できません。削除する代わりにステータスを変更してください。",
+    };
+  }
+
+  const { error } = await supabase.from("worksites").delete().eq("id", id);
+  if (error) {
+    return { error: `削除に失敗しました: ${error.message}` };
+  }
+
+  revalidatePath("/admin/worksites");
+  return {};
+}

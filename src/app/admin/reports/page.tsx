@@ -3,6 +3,8 @@ import { createClient } from "@/lib/supabase/server";
 import { AppHeader } from "@/components/app-header";
 import { AdminNav } from "@/components/admin-nav";
 import { DateSelect } from "@/components/date-select";
+import { FilterForm } from "@/components/filter-form";
+import { FilterSubmitButton } from "@/components/filter-submit-button";
 import { ReportsTable } from "./reports-table";
 
 type SearchParams = {
@@ -97,7 +99,7 @@ export default async function AdminReportsPage({
       <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-6 space-y-4">
         <h1 className="text-xl font-bold text-foreground">日報一覧</h1>
 
-        <form className="grid grid-cols-1 gap-3 rounded-2xl border border-border bg-card p-4 sm:grid-cols-3 md:grid-cols-6">
+        <FilterForm className="grid grid-cols-1 gap-3 rounded-2xl border border-border bg-card p-4 sm:grid-cols-3 md:grid-cols-6">
           <div className="min-w-0 md:col-span-3">
             <label className="mb-1 block text-xs text-muted">開始日</label>
             <DateSelect name="dateFrom" defaultValue={sp.dateFrom} />
@@ -165,12 +167,12 @@ export default async function AdminReportsPage({
             </select>
           </div>
           <div className="col-span-1 flex gap-3 sm:col-span-3 md:col-span-6">
-            <button
-              type="submit"
+            <FilterSubmitButton
+              pendingLabel="絞り込み中..."
               className="rounded-xl bg-accent px-4 py-2 text-sm font-semibold text-accent-foreground"
             >
               絞り込む
-            </button>
+            </FilterSubmitButton>
             <Link
               href="/admin/reports"
               className="rounded-xl border border-border px-4 py-2 text-sm font-medium text-muted active:bg-gray-100"
@@ -178,7 +180,7 @@ export default async function AdminReportsPage({
               リセット（すべて表示）
             </Link>
           </div>
-        </form>
+        </FilterForm>
 
         <ReportsTable rows={rows} />
       </main>

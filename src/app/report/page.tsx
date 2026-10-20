@@ -71,6 +71,7 @@ export default async function ReportHistoryPage() {
             <Link
               key={r.id}
               href={`/report/${r.id}`}
+              prefetch={false}
               className="flex items-center justify-between rounded-2xl border border-border bg-card p-4 hover:bg-gray-50"
             >
               <div>

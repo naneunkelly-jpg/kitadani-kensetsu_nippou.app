@@ -71,6 +71,7 @@ export function ToolGroupList({ groups }: { groups: ToolGroup[] }) {
                   >
                     <Link
                       href={`/admin/tools/${u.id}`}
+                      prefetch={false}
                       className="min-w-0 flex-1 hover:underline"
                     >
                       <p className="font-medium text-foreground">

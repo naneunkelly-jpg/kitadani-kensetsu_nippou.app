@@ -64,6 +64,7 @@ export default async function EmployeesPage() {
                   <td className="whitespace-nowrap px-4 py-3">
                     <Link
                       href={`/admin/employees/${emp.id}`}
+                      prefetch={false}
                       className="font-medium text-foreground underline-offset-2 hover:underline"
                     >
                       {emp.full_name || "(未設定)"}

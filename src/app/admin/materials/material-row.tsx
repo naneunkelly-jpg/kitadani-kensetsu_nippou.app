@@ -54,6 +54,7 @@ export function MaterialRow({ material }: { material: MaterialRowData }) {
           {material.note && <p className="text-sm text-muted">{material.note}</p>}
           <Link
             href={`/admin/materials/${material.id}`}
+            prefetch={false}
             className="inline-block text-sm text-accent underline-offset-2 hover:underline"
           >
             材料名・単位を編集する

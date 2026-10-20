@@ -1,6 +1,10 @@
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { AppHeader } from "@/components/app-header";
 import { AdminNav } from "@/components/admin-nav";
+import { FilterForm } from "@/components/filter-form";
+import { FilterSubmitButton } from "@/components/filter-submit-button";
+import { CsvExportLink } from "@/components/csv-export-link";
 import { getTodayJstYearMonth } from "@/lib/date";
 import { getMonthlySummary } from "@/lib/summary";
 
@@ -42,7 +46,7 @@ export default async function AdminSummaryPage({
       <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-6 space-y-6">
         <h1 className="text-xl font-bold text-foreground">月次集計</h1>
 
-        <form className="flex flex-wrap items-end gap-3 rounded-2xl border border-border bg-card p-4">
+        <FilterForm className="flex flex-wrap items-end gap-3 rounded-2xl border border-border bg-card p-4">
           <div>
             <label className="mb-1 block text-xs text-muted">年</label>
             <select
@@ -71,32 +75,32 @@ export default async function AdminSummaryPage({
               ))}
             </select>
           </div>
-          <button
-            type="submit"
+          <FilterSubmitButton
+            pendingLabel="表示中..."
             className="rounded-xl bg-accent px-4 py-2 text-sm font-semibold text-accent-foreground"
           >
             表示
-          </button>
-        </form>
+          </FilterSubmitButton>
+        </FilterForm>
 
-        <a
+        <CsvExportLink
           href={`/admin/summary/csv?type=all&year=${year}&month=${month}`}
           className="block rounded-2xl border-2 border-accent bg-accent/5 px-4 py-3 text-center text-sm font-semibold text-accent active:bg-accent/10"
         >
           集計をまとめてCSVエクスポート
-        </a>
+        </CsvExportLink>
 
         <section className="space-y-3">
           <div className="flex items-center justify-between">
             <h2 className="text-base font-bold text-foreground">
               従業員別（{year}年{month}月）
             </h2>
-            <a
+            <CsvExportLink
               href={`/admin/summary/csv?type=employee&year=${year}&month=${month}`}
               className="rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-foreground active:bg-gray-100"
             >
               CSVエクスポート
-            </a>
+            </CsvExportLink>
           </div>
           <div className="overflow-x-auto rounded-2xl border border-border bg-card">
             <table className="w-full min-w-[480px] text-sm">
@@ -112,7 +116,13 @@ export default async function AdminSummaryPage({
                 {employees.map((e) => (
                   <tr key={e.employeeId} className="border-t border-border">
                     <td className="whitespace-nowrap px-4 py-3 font-medium text-foreground">
-                      {e.employeeName}
+                      <Link
+                        href={`/admin/summary/employee/${e.employeeId}?year=${year}&month=${month}`}
+                        prefetch={false}
+                        className="text-accent underline-offset-2 hover:underline"
+                      >
+                        {e.employeeName}
+                      </Link>
                     </td>
                     <td className="whitespace-nowrap px-4 py-3">{e.attendanceDays}日</td>
                     <td className="whitespace-nowrap px-4 py-3">{e.workHours}時間</td>
@@ -136,12 +146,12 @@ export default async function AdminSummaryPage({
             <h2 className="text-base font-bold text-foreground">
               元請け先別（{year}年{month}月）
             </h2>
-            <a
+            <CsvExportLink
               href={`/admin/summary/csv?type=client&year=${year}&month=${month}`}
               className="rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-foreground active:bg-gray-100"
             >
               CSVエクスポート
-            </a>
+            </CsvExportLink>
           </div>
           <div className="overflow-x-auto rounded-2xl border border-border bg-card">
             <table className="w-full min-w-[420px] text-sm">
@@ -179,12 +189,12 @@ export default async function AdminSummaryPage({
             <h2 className="text-base font-bold text-foreground">
               現場別（{year}年{month}月）
             </h2>
-            <a
+            <CsvExportLink
               href={`/admin/summary/csv?type=worksite&year=${year}&month=${month}`}
               className="rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-foreground active:bg-gray-100"
             >
               CSVエクスポート
-            </a>
+            </CsvExportLink>
           </div>
           <div className="overflow-x-auto rounded-2xl border border-border bg-card">
             <table className="w-full min-w-[520px] text-sm">

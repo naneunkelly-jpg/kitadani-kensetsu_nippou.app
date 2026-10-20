@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { AppHeader } from "@/components/app-header";
 import { AdminNav } from "@/components/admin-nav";
 import { WORKSITE_STATUS_LABELS } from "@/lib/worksite-status";
+import { DeleteWorksiteButton } from "./delete-button";
 
 export default async function WorksitesPage() {
   const supabase = await createClient();
@@ -56,16 +57,22 @@ export default async function WorksitesPage() {
               <p className="font-semibold text-foreground">{group.clientName}</p>
               <div className="mt-2 space-y-1">
                 {group.sites.map((site) => (
-                  <Link
+                  <div
                     key={site.id}
-                    href={`/admin/worksites/${site.id}`}
-                    className="flex items-center justify-between rounded-xl px-3 py-2 pl-6 hover:bg-gray-50"
+                    className="flex items-center justify-between gap-2 rounded-xl px-3 py-2 pl-6 hover:bg-gray-50"
                   >
-                    <span className="text-foreground">└ {site.name}</span>
-                    <span className="text-xs text-muted">
-                      {WORKSITE_STATUS_LABELS[site.status] ?? site.status}
-                    </span>
-                  </Link>
+                    <Link
+                      href={`/admin/worksites/${site.id}`}
+                      prefetch={false}
+                      className="flex min-w-0 flex-1 items-center justify-between gap-2"
+                    >
+                      <span className="truncate text-foreground">└ {site.name}</span>
+                      <span className="whitespace-nowrap text-xs text-muted">
+                        {WORKSITE_STATUS_LABELS[site.status] ?? site.status}
+                      </span>
+                    </Link>
+                    <DeleteWorksiteButton id={site.id} name={site.name} />
+                  </div>
                 ))}
               </div>
             </div>

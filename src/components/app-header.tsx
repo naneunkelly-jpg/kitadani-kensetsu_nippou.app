@@ -1,6 +1,6 @@
 import Image from "next/image";
-import Link from "next/link";
 import { logoutAction } from "@/app/logout/actions";
+import { BackLink } from "@/components/back-link";
 
 export function AppHeader({
   userName,
@@ -18,13 +18,13 @@ export function AppHeader({
       <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
         <div className="flex min-w-0 items-center gap-2">
           {backHref && (
-            <Link
-              href={backHref}
-              aria-label="戻る"
+            <BackLink
+              fallbackHref={backHref}
+              ariaLabel="戻る"
               className="-ml-1 shrink-0 rounded-lg p-2 text-lg text-muted active:bg-gray-100"
             >
               ←
-            </Link>
+            </BackLink>
           )}
           <Image
             src="/icons/logo.png"

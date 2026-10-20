@@ -3,6 +3,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { AppHeader } from "@/components/app-header";
 import { AdminNav } from "@/components/admin-nav";
+import { BackLink } from "@/components/back-link";
 import { DeleteReportButton } from "@/components/delete-report-button";
 import { REPORT_STATUS_LABELS } from "@/lib/report-status";
 import { ConfirmReportButton } from "./confirm-button";
@@ -148,9 +149,9 @@ export default async function AdminReportDetailPage({
           )}
         </div>
 
-        <Link href="/admin/reports" className="block text-center text-sm text-accent">
+        <BackLink fallbackHref="/admin/reports" className="block text-center text-sm text-accent">
           一覧に戻る
-        </Link>
+        </BackLink>
         </div>
       </main>
     </>

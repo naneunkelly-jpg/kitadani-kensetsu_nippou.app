@@ -12,13 +12,13 @@ export function DeleteHolidayButton({ id }: { id: string }) {
       disabled={isPending}
       onClick={() => {
         if (!confirm("この会社公休日を削除しますか？")) return;
-        startTransition(() => {
-          deleteHolidayAction(id);
+        startTransition(async () => {
+          await deleteHolidayAction(id);
         });
       }}
       className="rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-danger disabled:opacity-60"
     >
-      削除
+      {isPending ? "削除中..." : "削除"}
     </button>
   );
 }

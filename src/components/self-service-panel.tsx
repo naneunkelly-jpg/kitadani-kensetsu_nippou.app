@@ -38,6 +38,7 @@ export async function SelfServicePanel({ userId }: { userId: string }) {
       {/* 今日の日報を書く：最重要アクションを最上部・最大に配置 */}
       <Link
         href="/report/new"
+        prefetch={false}
         className="block rounded-2xl bg-accent px-5 py-6 text-center text-lg font-bold text-accent-foreground shadow-sm active:opacity-90"
       >
         {todayReport ? "今日の日報を編集する" : "今日の日報を書く"}
@@ -45,6 +46,7 @@ export async function SelfServicePanel({ userId }: { userId: string }) {
 
       <Link
         href="/report/select-date"
+        prefetch={false}
         className="block text-center text-sm text-accent underline-offset-2 hover:underline"
       >
         過去の日報を提出する
@@ -54,6 +56,7 @@ export async function SelfServicePanel({ userId }: { userId: string }) {
       <div className="grid grid-cols-2 gap-4">
         <Link
           href="/tools"
+          prefetch={false}
           className="rounded-2xl border-2 border-accent bg-accent/5 px-4 py-4 text-center active:bg-accent/10"
         >
           <p className="font-semibold text-accent">工具の持ち出し・返却</p>
@@ -62,6 +65,7 @@ export async function SelfServicePanel({ userId }: { userId: string }) {
 
         <Link
           href="/materials"
+          prefetch={false}
           className="rounded-2xl border-2 border-accent bg-accent/5 px-4 py-4 text-center active:bg-accent/10"
         >
           <p className="font-semibold text-accent">材料の使用記録</p>
@@ -83,6 +87,7 @@ export async function SelfServicePanel({ userId }: { userId: string }) {
 
         <Link
           href="/report"
+          prefetch={false}
           className="rounded-2xl border border-border bg-card p-5 active:bg-gray-50"
         >
           <p className="text-sm text-muted">過去の日報</p>
@@ -91,6 +96,7 @@ export async function SelfServicePanel({ userId }: { userId: string }) {
 
         <Link
           href="/leave"
+          prefetch={false}
           className="rounded-2xl border border-border bg-card p-5 active:bg-gray-50"
         >
           <p className="text-sm text-muted">欠勤予定</p>
@@ -102,6 +108,7 @@ export async function SelfServicePanel({ userId }: { userId: string }) {
 
       <Link
         href="/account/password"
+        prefetch={false}
         className="block text-center text-sm text-accent underline-offset-2 hover:underline"
       >
         パスワードを変更する

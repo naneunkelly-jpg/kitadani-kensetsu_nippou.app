@@ -111,6 +111,7 @@ export function ReportsTable({ rows }: { rows: ReportRow[] }) {
                   <td className="whitespace-nowrap px-4 py-3">
                     <Link
                       href={`/admin/reports/${row.reportId}`}
+                      prefetch={false}
                       className="text-foreground underline-offset-2 hover:underline"
                     >
                       {row.reportDate}

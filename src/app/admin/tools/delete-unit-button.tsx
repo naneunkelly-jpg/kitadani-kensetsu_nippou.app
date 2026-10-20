@@ -22,7 +22,7 @@ export function DeleteToolUnitButton({ id, label }: { id: string; label: string 
         }}
         className="rounded-lg border border-border px-2 py-1 text-xs font-medium text-danger disabled:opacity-60"
       >
-        削除
+        {isPending ? "削除中..." : "削除"}
       </button>
       {error && <p className="mt-1 text-xs text-danger">{error}</p>}
     </div>

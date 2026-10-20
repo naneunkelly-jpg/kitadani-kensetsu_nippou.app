@@ -1,8 +1,8 @@
 import { notFound } from "next/navigation";
-import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { AppHeader } from "@/components/app-header";
 import { AdminNav } from "@/components/admin-nav";
+import { BackLink } from "@/components/back-link";
 import { HolidayEditForm } from "./edit-form";
 
 export default async function HolidayDetailPage({
@@ -37,9 +37,9 @@ export default async function HolidayDetailPage({
         <div className="mx-auto w-full max-w-lg space-y-4">
           <div className="flex items-center justify-between">
             <h1 className="text-xl font-bold text-foreground">会社公休日編集</h1>
-            <Link href="/admin/holidays" className="text-sm text-accent">
+            <BackLink fallbackHref="/admin/holidays" className="text-sm text-accent">
               一覧に戻る
-            </Link>
+            </BackLink>
           </div>
           <p className="text-sm text-muted">日付: {item.holiday_date}</p>
           <HolidayEditForm id={item.id} name={item.name} note={item.note} />
